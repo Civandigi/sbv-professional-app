@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>SBV Gesuch-Tool - Dashboard</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+        :root {
+            --color-black: #000000;
+            --color-light-blue: #A4D2F4;
+            --color-green: #6BAF38;
+            --color-background: #F8FAFC;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
+            --color-orange: #F59E0B;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .button_primary {
+            @apply bg-[var(--color-light-blue)] text-[var(--color-black)] rounded-full px-6 py-2.5 text-sm font-bold hover:bg-opacity-80 transition-colors;
+        }
+        .button_secondary {
+            @apply bg-gray-100 text-[var(--color-text-primary)] rounded-full px-6 py-2.5 text-sm font-bold hover:bg-gray-200 transition-colors;
+        }
+        .nav-link-active {
+            @apply bg-[var(--color-light-blue)] bg-opacity-30 text-[var(--color-black)] font-semibold;
+        }
+        .nav-link-inactive {
+            @apply text-[var(--color-text-secondary)] hover:bg-gray-100 font-medium;
+        }
+    </style>
+</head>
+<body class="bg-[var(--color-background)]">
+    <div class="flex min-h-screen">
+        <!-- SBV Navigation Sidebar -->
+        <aside class="w-64 bg-[var(--color-card-background)] shadow-lg flex flex-col p-6">
+            <!-- SBV Logo & Brand -->
+            <div class="flex items-center gap-3 mb-10">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDfIdKp6VdS2nQMDUcF2qPO1yZ9jCuJxr9CbrRvA3v02sE_OfFquPz8R-S9MKzpYvSkXGI5RLDJxkJ2gS5lElmVkSemhteatDyme2toGLSiyXgcbGBqu3G0wZp3g1OZmteaTFdUkhUb6dEJl_WxTahqdNs5btD4vGO5HAtkAo9dQL3pNGCHxQDGEceXTtU-yIlnAXC9awIMOMPle0UcLi_DQb2ttNh4aImT8Y7sDWnULJb5fau3aZg5c302WTMfMPIBaZ5IWq6oMY-S");'></div>
+                <h1 class="text-[var(--color-text-primary)] text-base font-bold">SBV Gesuch-Tool</h1>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex flex-col gap-2 flex-grow" id="nav-menu">
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-active nav-link" href="#dashboard" data-page="dashboard" onclick="navigateTo('dashboard'); return false;">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg"><path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"></path></svg>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-inactive nav-link" href="#gesuche" data-page="gesuche" onclick="navigateTo('gesuche'); return false;">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"></path></svg>
+                    <span>Gesuche</span>
+                </a>
+                
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-inactive nav-link" href="#berichte" data-page="berichte" onclick="navigateTo('berichte'); return false;">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176ZM104,120v24a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm32-16v40a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm32-16v56a8,8,0,0,1-16,0V88a8,8,0,0,1,16,0Z"></path></svg>
+                    <span>Berichte</span>
+                </a>
+                
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-inactive nav-link" href="#dokumente" data-page="dokumente" onclick="navigateTo('dokumente'); return false;">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 24 24" width="24px" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <span>Dokumente</span>
+                </a>
+                
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-inactive nav-link" href="#zuweisungen" data-page="zuweisungen" onclick="navigateTo('zuweisungen'); return false;">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 24 24" width="24px" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H9V7h9v14z"/>
+                        <path d="M15 9H11v2h4V9zm0 3H11v2h4v-2zm0 3H11v2h4v-2z"/>
+                    </svg>
+                    <span>Zuweisungen</span>
+                </a>
+                
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-inactive nav-link" href="#einstellungen" data-page="einstellungen" onclick="navigateTo('einstellungen'); return false;">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 24 24" width="24px" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                    </svg>
+                    <span>Einstellungen</span>
+                </a>
+            </nav>
+
+            <!-- Help Link -->
+            <div class="mt-auto">
+                <a class="flex items-center gap-3 px-4 py-2.5 rounded-full nav-link-inactive" href="#help">
+                    <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg"><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path></svg>
+                    <span>Hilfe</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-8 grid grid-cols-3 gap-8" id="main-content">
+            <!-- Dynamic Content wird hier geladen -->
+            <div class="col-span-3" id="page-content">
+                <!-- Dashboard Content (Initial) -->
+                <div id="dashboard-content">
+                    <h1 class="text-3xl font-bold text-[var(--color-text-primary)] mb-8">SBV Dashboard</h1>
+                    
+                    <!-- Statistics Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Offene Gesuche</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">24</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3h6v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm8 8a1 1 0 100-2 1 1 0 000 2zm-3-1a1 1 0 11-2 0 1 1 0 012 0zm-1-4a1 1 0 100-2 1 1 0 000 2zm4-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Bearbeitete Gesuche</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">156</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-[var(--color-green)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Aktive Benutzer</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">12</p>
+                                </div>
+                                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Berichte</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">8</p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity & Notifications Layout -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Recent Activity (Takes 2 columns on large screens) -->
+                        <section class="col-span-1 lg:col-span-2 bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                            <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Letzte Aktivitäten</h2>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="border-b border-[var(--color-border)]">
+                                            <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Datum</th>
+                                            <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Typ</th>
+                                            <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Beschreibung</th>
+                                            <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)] text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-[var(--color-border)]">
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">21.07.2025</td>
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Gesuch</td>
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Neues Gesuch von Alex Meier eingereicht</td>
+                                            <td class="py-4 px-4 text-center">
+                                                <span class="inline-block px-3 py-1 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-full">Wartend</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-[var(--color-border)]">
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">20.07.2025</td>
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Bericht</td>
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Monatsbericht Juni genehmigt</td>
+                                            <td class="py-4 px-4 text-center">
+                                                <span class="inline-block px-3 py-1 text-sm font-medium text-[var(--color-green)] bg-green-100 rounded-full">Genehmigt</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-[var(--color-border)]">
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">19.07.2025</td>
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Gesuch</td>
+                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Antrag für zusätzliche Ressourcen</td>
+                                            <td class="py-4 px-4 text-center">
+                                                <span class="inline-block px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">In Prüfung</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- Notifications & Quick Actions Sidebar -->
+                        <aside class="col-span-1 space-y-8">
+                            <!-- Notifications -->
+                            <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Benachrichtigungen</h2>
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-4 p-4 rounded-lg bg-blue-50">
+                                        <div class="flex-shrink-0 size-8 flex items-center justify-center rounded-full bg-[var(--color-light-blue)] text-[var(--color-black)]">
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-sm text-[var(--color-text-primary)]">Deadline für Projektbericht naht</p>
+                                            <p class="text-xs text-[var(--color-text-secondary)]">22.07.2025</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start gap-4 p-4 rounded-lg bg-green-50">
+                                        <div class="flex-shrink-0 size-8 flex items-center justify-center rounded-full bg-[var(--color-green)] text-white">
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 2a6 6 0 00-6 6v3.586l-1.707 1.707A1 1 0 003 15h14a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-sm text-[var(--color-text-primary)]">Neues Gesuch vom Standortleiter</p>
+                                            <p class="text-xs text-[var(--color-text-secondary)]">21.07.2025</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
+                                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Schnellaktionen</h2>
+                                <div class="flex flex-col gap-3">
+                                    <button class="button_primary">Neues Gesuch erstellen</button>
+                                    <button class="button_secondary">Bericht generieren</button>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="sbv-navigation-fixed.js"></script>
+    <script src="test-navigation.js"></script>
+    <script>
+        // Simple direct navigation function
+        function navigateTo(page) {
+            console.log(`🧭 Direct navigation to: ${page}`);
+            
+            // Update navigation active states
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const linkPage = link.getAttribute('data-page');
+                if (linkPage === page) {
+                    link.classList.remove('nav-link-inactive');
+                    link.classList.add('nav-link-active');
+                } else {
+                    link.classList.remove('nav-link-active');
+                    link.classList.add('nav-link-inactive');
+                }
+            });
+            
+            // Get page content
+            const pageContent = document.getElementById('page-content');
+            if (!pageContent) {
+                console.error('❌ Page content element not found!');
+                return;
+            }
+            
+            // Load content using SBVNavigation functions
+            if (window.SBVNavigation && window.SBVNavigation.getPageContent) {
+                const content = window.SBVNavigation.getPageContent(page);
+                pageContent.innerHTML = content;
+                console.log(`✅ Loaded content for: ${page}`);
+                
+                // Update page title
+                if (window.SBVNavigation.getPageTitle) {
+                    document.title = `SBV Gesuch-Tool - ${window.SBVNavigation.getPageTitle(page)}`;
+                }
+                
+                // Update URL
+                window.history.pushState({page: page}, '', `#${page}`);
+            } else {
+                console.error('❌ SBVNavigation functions not available');
+                // Fallback - simple content
+                pageContent.innerHTML = `
+                    <div class="col-span-3">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-8">${page.charAt(0).toUpperCase() + page.slice(1)}</h1>
+                        <div class="bg-white rounded-2xl shadow-sm p-6">
+                            <p class="text-gray-600">Inhalt wird geladen...</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Test navigation on load
+        setTimeout(() => {
+            console.log('🧪 Testing navigation system...');
+            console.log('Available pages: dashboard, gesuche, berichte, dokumente, zuweisungen, einstellungen');
+            console.log('SBVNavigation available:', !!window.SBVNavigation);
+            
+            if (window.SBVNavigation) {
+                console.log('✅ Navigation functions available:', Object.keys(window.SBVNavigation));
+                
+                // Test content loading
+                const testPage = 'dashboard';
+                const testContent = window.SBVNavigation.getPageContent(testPage);
+                console.log(`Test content for ${testPage}:`, testContent ? `${testContent.length} chars` : 'NONE');
+            }
+            
+            console.log('Use navigateTo("pagename") to test navigation');
+            
+            // Auto-load dashboard if not already loaded
+            const pageContent = document.getElementById('page-content');
+            if (pageContent && (!pageContent.innerHTML || pageContent.innerHTML.includes('Dashboard wird geladen'))) {
+                console.log('🔄 Auto-loading dashboard content...');
+                navigateTo('dashboard');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
