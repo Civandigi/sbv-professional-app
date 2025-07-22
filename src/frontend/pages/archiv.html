@@ -46,11 +46,11 @@
                         <option value="2022">2022</option>
                     </select>
                 </div>
-                <button class="flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);">
+                <button class="flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);" onclick="uploadGesuch()">
                     <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                     </svg>
-                    <span>Neues Gesuchsjahr erstellen</span>
+                    <span>Gesuch hochladen</span>
                 </button>
             </div>
         </div>
@@ -120,6 +120,39 @@
                     <p class="text-base font-semibold" style="color: var(--color-text-primary);">2018</p>
                 </div>
 
+            </div>
+        </div>
+        
+        <!-- Upload Modal -->
+        <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h3 class="text-xl font-bold mb-4" style="color: var(--color-text-primary);">Gesuch hochladen</h3>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Gesuch-Datei (PDF)</label>
+                        <input type="file" id="gesuchFile" accept=".pdf" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Jahr</label>
+                        <select id="uploadYear" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Beschreibung</label>
+                        <textarea id="uploadDescription" rows="3" class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);" placeholder="Kurze Beschreibung des Gesuchs..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border rounded-lg" style="border-color: var(--color-border); color: var(--color-text-secondary);">
+                            Abbrechen
+                        </button>
+                        <button type="submit" class="px-4 py-2 text-white rounded-lg" style="background-color: var(--color-green);">
+                            Hochladen
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -278,6 +311,83 @@
             // In Zukunft: Öffne detaillierte Archiv-Ansicht
             // showArchiveDetail(year, data);
         }
+
+        // Upload Gesuch Functions
+        function uploadGesuch() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+            document.getElementById('uploadModal').classList.add('flex');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+            document.getElementById('uploadModal').classList.remove('flex');
+            document.getElementById('uploadForm').reset();
+        }
+
+        // Handle upload form submission
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            console.log('Upload form submitted');
+            
+            const formData = new FormData();
+            const file = document.getElementById('gesuchFile').files[0];
+            const year = document.getElementById('uploadYear').value;
+            const description = document.getElementById('uploadDescription').value;
+            
+            console.log('File:', file, 'Year:', year, 'Description:', description);
+            
+            if (!file) {
+                alert('Bitte wählen Sie eine PDF-Datei aus.');
+                return;
+            }
+            
+            if (file.type !== 'application/pdf') {
+                alert('Bitte wählen Sie nur PDF-Dateien aus.');
+                return;
+            }
+            
+            formData.append('gesuch', file);
+            formData.append('jahr', year);
+            formData.append('beschreibung', description);
+            
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                console.log('Token found:', token ? 'Yes' : 'No');
+                
+                if (!token) {
+                    alert('Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                console.log('Sending upload request...');
+                
+                const response = await fetch('/api/gesuche/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (result.success) {
+                    alert('Gesuch erfolgreich hochgeladen!');
+                    closeUploadModal();
+                    loadAvailableYears(); // Refresh the display
+                } else {
+                    alert('Fehler beim Hochladen: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Fehler beim Hochladen der Datei: ' + error.message);
+            }
+        });
 
         // Create new year
         async function createNewYear() {

@@ -46,6 +46,10 @@
             background-color: var(--color-secondary);
             color: white;
         }
+        .role-sachbearbeiter {
+            background-color: var(--color-primary);
+            color: var(--color-black);
+        }
         .role-benutzer {
             background-color: #E5E7EB;
             color: #374151;
@@ -59,23 +63,14 @@
             color: white;
         }
         .tab-button {
-            padding: 0.25rem 0.5rem;
+            padding: 0.75rem 1.5rem;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
-            font-size: 0.75rem;
-            font-weight: 500;
-            white-space: nowrap;
-            color: var(--color-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
         .tab-button.active {
             border-bottom-color: var(--color-secondary);
             color: var(--color-secondary);
             font-weight: 600;
-        }
-        .tab-button:hover {
-            color: var(--color-text-primary);
         }
     </style>
 </head>
@@ -84,7 +79,7 @@
         <!-- Page Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Einstellungen</h1>
+                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">User-Verwaltung & Einstellungen</h1>
                 <p class="text-[var(--color-text-secondary)] mt-2">Benutzer verwalten, Rollen zuweisen und Systemeinstellungen konfigurieren</p>
             </div>
             <button id="add-user-btn" class="bg-[var(--color-secondary)] text-white font-semibold py-3 px-6 rounded-full hover:opacity-90 transition-opacity">
@@ -95,8 +90,8 @@
         <!-- Tab Navigation -->
         <div class="mb-8">
             <div class="flex border-b border-[var(--color-border)]">
-                <button class="tab-button active" onclick="showTab('users')">Benutzer</button>
-                <button class="tab-button" onclick="showTab('system')">Einstellungen</button>
+                <button class="tab-button active" onclick="showTab('users')">👥 Benutzer-Verwaltung</button>
+                <button class="tab-button" onclick="showTab('system')">⚙️ System-Einstellungen</button>
             </div>
         </div>
 
@@ -110,11 +105,11 @@
                 </div>
                 <div class="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div class="text-2xl font-bold text-[var(--color-secondary)]">3</div>
-                    <div class="text-sm text-[var(--color-text-secondary)]">Admins</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Administratoren</div>
                 </div>
                 <div class="bg-white rounded-lg p-4 text-center shadow-sm">
-                    <div class="text-2xl font-bold text-[var(--color-primary)]">8</div>
-                    <div class="text-sm text-[var(--color-text-secondary)]">Benutzer</div>
+                    <div class="text-2xl font-bold text-[var(--color-primary)]">5</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Sachbearbeiter</div>
                 </div>
                 <div class="bg-white rounded-lg p-4 text-center shadow-sm">
                     <div class="text-2xl font-bold text-[var(--color-success)]">11</div>
@@ -133,7 +128,8 @@
                         <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                             <option>Alle Rollen</option>
                             <option>Super Admin</option>
-                            <option>Admin</option>
+                            <option>Administrator</option>
+                            <option>Sachbearbeiter</option>
                             <option>Benutzer</option>
                         </select>
                         <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -202,7 +198,7 @@
                                     </div>
                                 </td>
                                 <td class="py-4 px-4">
-                                    <span class="role-badge role-admin">Admin</span>
+                                    <span class="role-badge role-admin">Administrator</span>
                                 </td>
                                 <td class="py-4 px-4">
                                     <div class="text-sm text-[var(--color-text-secondary)]">TP 1, TP 2, TP 5</div>
@@ -232,7 +228,7 @@
                                     </div>
                                 </td>
                                 <td class="py-4 px-4">
-                                    <span class="role-badge role-benutzer">Benutzer</span>
+                                    <span class="role-badge role-sachbearbeiter">Sachbearbeiter</span>
                                 </td>
                                 <td class="py-4 px-4">
                                     <div class="text-sm text-[var(--color-text-secondary)]">TP 3, TP 4</div>
@@ -292,7 +288,7 @@
                                     </div>
                                 </td>
                                 <td class="py-4 px-4">
-                                    <span class="role-badge role-admin">Admin</span>
+                                    <span class="role-badge role-admin">Administrator</span>
                                 </td>
                                 <td class="py-4 px-4">
                                     <div class="text-sm text-[var(--color-text-secondary)]">TP 6, TP 7</div>
@@ -316,85 +312,50 @@
 
         <!-- System Settings Tab Content (hidden by default) -->
         <div id="system-tab" class="tab-content hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                <!-- Session Timeout -->
-                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Session Timeout</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Automatische Abmeldung nach Inaktivität</p>
-                    </div>
-                    <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option>30 Minuten</option>
-                        <option>1 Stunde</option>
-                        <option>4 Stunden</option>
-                        <option>8 Stunden</option>
-                    </select>
-                </div>
-
-                <!-- API Key -->
-                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">API-Schlüssel</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Für externe Integrationen</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <input type="text" id="api-key" readonly value="API-XXXX-XXXX-XXXX" class="flex-1 p-3 border border-[var(--color-border)] rounded-lg bg-gray-50 text-gray-700">
-                        <button type="button" onclick="generateApiKey()" class="px-4 py-2 text-white bg-[var(--color-secondary)] rounded-lg hover:opacity-90 transition-opacity">Neu</button>
-                    </div>
-                </div>
-
-                <!-- Backup Einstellungen -->
-                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Backup Einstellungen</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Automatische Datensicherung</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex gap-3">
-                            <button type="button" class="px-4 py-2 text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 transition-opacity text-sm">Backup erstellen</button>
-                            <select class="flex-1 p-3 border border-[var(--color-border)] rounded-lg text-sm">
-                                <option>Täglich</option>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Database Settings -->
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Datenbank Einstellungen</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Backup-Intervall</label>
+                            <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <option>Täglich (empfohlen)</option>
                                 <option>Wöchentlich</option>
                                 <option>Monatlich</option>
                             </select>
                         </div>
-                        <p class="text-xs text-[var(--color-text-secondary)]">Letztes Backup: 21.07.2025, 23:00</p>
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Letztes Backup</label>
+                            <input type="text" value="22.07.2025 - 02:00 Uhr" readonly class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                        </div>
+                        <button class="bg-[var(--color-primary)] text-[var(--color-black)] font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                            Backup jetzt erstellen
+                        </button>
                     </div>
                 </div>
 
-                <!-- Sicherheit -->
-                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Sicherheit</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Login und Zugriffskontrolle</p>
-                    </div>
-                    <div class="space-y-3">
-                        <label class="flex items-center">
-                            <input type="checkbox" checked class="mr-3 rounded border-[var(--color-border)]">
-                            <span class="text-sm">Starke Passwörter erzwingen</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="mr-3 rounded border-[var(--color-border)]">
-                            <span class="text-sm">Login-Versuche begrenzen</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Benachrichtigungen -->
-                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Benachrichtigungen</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">E-Mail und System-Alerts</p>
-                    </div>
-                    <div class="space-y-3">
-                        <label class="flex items-center">
-                            <input type="checkbox" checked class="mr-3 rounded border-[var(--color-border)]">
-                            <span class="text-sm">Neue Gesuche</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" checked class="mr-3 rounded border-[var(--color-border)]">
-                            <span class="text-sm">System-Updates</span>
-                        </label>
+                <!-- Security Settings -->
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Sicherheit</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Session Timeout</label>
+                            <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <option>30 Minuten</option>
+                                <option>1 Stunde</option>
+                                <option>4 Stunden</option>
+                                <option>8 Stunden</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="two-factor" class="w-4 h-4 text-[var(--color-primary)] rounded">
+                            <label for="two-factor" class="text-sm font-medium text-[var(--color-text-primary)]">Zwei-Faktor-Authentifizierung aktivieren</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="login-logs" checked class="w-4 h-4 text-[var(--color-primary)] rounded">
+                            <label for="login-logs" class="text-sm font-medium text-[var(--color-text-primary)]">Login-Logs speichern</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -424,7 +385,8 @@
                         <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Rolle</label>
                         <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                             <option>Benutzer</option>
-                            <option>Admin</option>
+                            <option>Sachbearbeiter</option>
+                            <option>Administrator</option>
                             <option>Super Admin</option>
                         </select>
                     </div>
@@ -518,13 +480,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // TODO: Send activation request to server
             // TODO: Update UI to show active status
         }
-    };
-    
-    // API-Key generieren (Dummy)
-    window.generateApiKey = function() {
-        const key = 'API-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
-        document.getElementById('api-key').value = key;
-        alert('Neuer API-Schlüssel generiert!');
     };
     
     // Search functionality

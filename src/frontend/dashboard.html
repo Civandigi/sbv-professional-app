@@ -253,183 +253,11 @@
         // SBVNavigation Namespace erstellen, falls nicht vorhanden
         window.SBVNavigation = window.SBVNavigation || {};
         
-        // Erweiterung für Benutzerverwaltung in Einstellungen
+        // Erweiterung für neue Einstellungen-Seite
         window.SBVNavigation.getPageContent = function(page, subpage) {
-            // Basis-Navigation für Hauptseiten
+            // Für Einstellungen: Lade die neue HTML-Datei
             if (page === 'einstellungen') {
-                if (subpage === 'system') {
-                    return `
-                        <div class="col-span-3">
-                            <div class="flex items-center justify-between mb-8">
-                                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Einstellungen - Systemeinstellungen</h1>
-                            </div>
-                            
-                            <!-- Tabs für Einstellungen -->
-                            <div class="mb-8 border-b border-[var(--color-border)]">
-                                <div class="flex space-x-8">
-                                    <button onclick="navigateTo('einstellungen')" class="py-3 px-1 text-[var(--color-text-secondary)] font-medium border-b-2 border-transparent hover:border-gray-300">
-                                        Allgemein & Benutzer
-                                    </button>
-                                    <button onclick="navigateTo('einstellungen/system')" class="py-3 px-1 font-semibold text-[var(--color-black)] border-b-2 border-[var(--color-light-blue)]">
-                                        Systemeinstellungen
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Systemeinstellungen -->
-                            <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
-                                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">Systemkonfiguration</h2>
-                                <div class="space-y-6">
-                                    <!-- Einstellungen hier -->
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // Standard-Einstellungen mit integrierter Benutzerverwaltung
-                    return `
-                        <div class="col-span-3">
-                            <div class="flex items-center justify-between mb-8">
-                                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Einstellungen</h1>
-                            </div>
-                            
-                            <!-- Tabs für Einstellungen -->
-                            <div class="mb-8 border-b border-[var(--color-border)]">
-                                <div class="flex space-x-8">
-                                    <button onclick="navigateTo('einstellungen')" class="py-3 px-1 font-semibold text-[var(--color-black)] border-b-2 border-[var(--color-light-blue)]">
-                                        Allgemein & Benutzer
-                                    </button>
-                                    <button onclick="navigateTo('einstellungen/system')" class="py-3 px-1 text-[var(--color-text-secondary)] font-medium border-b-2 border-transparent hover:border-gray-300">
-                                        Systemeinstellungen
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Allgemeine Einstellungen -->
-                            <div class="space-y-8">
-                                <!-- App-Einstellungen -->
-                                <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
-                                    <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Anwendungseinstellungen</h2>
-                                    <div class="space-y-4">
-                                        <!-- Beispiel für Einstellungen -->
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <p class="font-medium text-[var(--color-text-primary)]">E-Mail-Benachrichtigungen</p>
-                                                <p class="text-sm text-[var(--color-text-secondary)]">Aktivieren/Deaktivieren von E-Mail-Benachrichtigungen</p>
-                                            </div>
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" checked>
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-light-blue)]"></div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Benutzerverwaltung -->
-                                <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
-                                    <div class="flex justify-between items-center mb-6">
-                                        <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Benutzerverwaltung</h2>
-                                        <button class="button_primary">Neuen Benutzer anlegen</button>
-                                    </div>
-                                    
-                                    <div class="flex items-center justify-between mb-4">
-                                        <p class="text-sm text-[var(--color-text-secondary)]">Verwalten Sie hier alle Benutzer der Anwendung</p>
-                                        <div class="relative">
-                                            <input type="text" placeholder="Benutzer suchen..." class="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-full text-sm">
-                                            <svg class="absolute left-3 top-2.5 w-4 h-4 text-[var(--color-text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Benutzertabelle -->
-                                    <div class="overflow-x-auto">
-                                        <table class="w-full text-left">
-                                            <thead>
-                                                <tr class="border-b border-[var(--color-border)]">
-                                                    <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Name</th>
-                                                    <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">E-Mail</th>
-                                                    <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Rolle</th>
-                                                    <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Status</th>
-                                                    <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)]">Aktionen</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr class="border-b border-[var(--color-border)]">
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">Max Mustermann</td>
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">max@sbv-gesuch.ch</td>
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">Super Administrator</td>
-                                                    <td class="py-4 px-4">
-                                                        <span class="inline-block px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Aktiv</span>
-                                                    </td>
-                                                    <td class="py-4 px-4">
-                                                        <div class="flex items-center space-x-3">
-                                                            <button class="text-blue-600 hover:text-blue-800">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                                                </svg>
-                                                            </button>
-                                                            <button class="text-red-600 hover:text-red-800">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr class="border-b border-[var(--color-border)]">
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">Anna Schmidt</td>
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">anna@sbv-gesuch.ch</td>
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">Sachbearbeiter</td>
-                                                    <td class="py-4 px-4">
-                                                        <span class="inline-block px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Aktiv</span>
-                                                    </td>
-                                                    <td class="py-4 px-4">
-                                                        <div class="flex items-center space-x-3">
-                                                            <button class="text-blue-600 hover:text-blue-800">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                                                </svg>
-                                                            </button>
-                                                            <button class="text-red-600 hover:text-red-800">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr class="border-b border-[var(--color-border)]">
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">Peter Müller</td>
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">peter@sbv-gesuch.ch</td>
-                                                    <td class="py-4 px-4 text-[var(--color-text-primary)]">Prüfer</td>
-                                                    <td class="py-4 px-4">
-                                                        <span class="inline-block px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Inaktiv</span>
-                                                    </td>
-                                                    <td class="py-4 px-4">
-                                                        <div class="flex items-center space-x-3">
-                                                            <button class="text-blue-600 hover:text-blue-800">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                                                </svg>
-                                                            </button>
-                                                            <button class="text-red-600 hover:text-red-800">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
+                return '<iframe src="pages/einstellungen.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV User-Verwaltung & Einstellungen"></iframe>';
             
             // Standardfunktion für andere Seiten
             return `
@@ -445,7 +273,7 @@
         // Page Title Funktion
         window.SBVNavigation.getPageTitle = function(page, subpage) {
             if (page === 'einstellungen') {
-                if (subpage === 'system') return 'Systemeinstellungen';
+                if (subpage === 'system') return 'Einstellungen';
                 return 'Einstellungen';
             }
             return page.charAt(0).toUpperCase() + page.slice(1);
@@ -514,7 +342,7 @@
                     },
                     {
                         id: 'einstellungen',
-                        label: 'System-Einstellungen',
+                        label: 'Einstellungen',
                         icon: 'M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z'
                     }
                 ],

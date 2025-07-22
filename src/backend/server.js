@@ -131,7 +131,10 @@ async function ensureUserTableSchema() {
             ADD COLUMN IF NOT EXISTS finanz_betrag DECIMAL(15,2),
             ADD COLUMN IF NOT EXISTS genehmigt BOOLEAN DEFAULT false,
             ADD COLUMN IF NOT EXISTS genehmigt_am TIMESTAMP,
-            ADD COLUMN IF NOT EXISTS teilprojekte TEXT[]
+            ADD COLUMN IF NOT EXISTS teilprojekte TEXT[],
+            ADD COLUMN IF NOT EXISTS uploaded_file VARCHAR(500),
+            ADD COLUMN IF NOT EXISTS file_size BIGINT,
+            ADD COLUMN IF NOT EXISTS mime_type VARCHAR(100)
         `);
         
         // Create teilprojekte table
@@ -951,6 +954,138 @@ app.get('/api/dokumente', async (req, res) => {
     }
 });
 
+// Upload Gesuch with automatic Rapport generation
+app.post('/api/gesuche/upload', authenticateToken, upload.single('gesuch'), async (req, res) => {
+    try {
+        // Nur Super Admin darf Gesuche hochladen
+        if (req.user.rolle !== 'super_admin') {
+            return res.status(403).json({ 
+                success: false,
+                message: 'Keine Berechtigung - Nur Super Admins können Gesuche hochladen' 
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Keine PDF-Datei hochgeladen'
+            });
+        }
+
+        // Validiere PDF-Typ
+        if (req.file.mimetype !== 'application/pdf') {
+            return res.status(400).json({
+                success: false,
+                message: 'Nur PDF-Dateien sind erlaubt'
+            });
+        }
+
+        // Validiere Dateigröße (10MB)
+        if (req.file.size > 10 * 1024 * 1024) {
+            return res.status(400).json({
+                success: false,
+                message: 'Datei zu groß. Maximale Größe: 10MB'
+            });
+        }
+
+        const { jahr, beschreibung } = req.body;
+        const fileName = req.file.originalname;
+        const filePath = req.file.path;
+        
+        logger.info('Gesuch Upload gestartet', { 
+            fileName, 
+            jahr, 
+            beschreibung, 
+            size: req.file.size,
+            user: req.user.email 
+        });
+        
+        // Extract information from filename and create Gesuch
+        const gesuchTitel = fileName.replace('.pdf', '').replace(/[-_]/g, ' ');
+        
+        // Create Gesuch entry with file information
+        const gesuchResult = await pool.query(`
+            INSERT INTO sbv_gesuche (
+                titel, 
+                gesuch_typ, 
+                jahr, 
+                status, 
+                eingereicht_am, 
+                uploaded_file, 
+                beschreibung,
+                file_size,
+                mime_type,
+                antragsteller
+            ) VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7, $8, $9)
+            RETURNING id, titel, gesuch_typ, jahr, status
+        `, [
+            gesuchTitel,
+            'partner', // Default type
+            parseInt(jahr),
+            'eingereicht',
+            filePath,
+            beschreibung || '',
+            req.file.size,
+            req.file.mimetype,
+            req.user.name || req.user.email
+        ]);
+        
+        const gesuch = gesuchResult.rows[0];
+        logger.info('Gesuch erstellt', { gesuchId: gesuch.id, titel: gesuch.titel });
+        
+        // Automatically generate Rapport from uploaded Gesuch
+        const rapportTitel = `Rapport für ${gesuchTitel}`;
+        
+        const rapportResult = await pool.query(`
+            INSERT INTO sbv_berichte (
+                titel, 
+                bericht_typ, 
+                jahr, 
+                status, 
+                gesuch_id,
+                erstellt_am,
+                inhalt,
+                erstellt_von
+            ) VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7)
+            RETURNING id, titel, bericht_typ, jahr, status
+        `, [
+            rapportTitel,
+            'rapport',
+            parseInt(jahr),
+            'entwurf',
+            gesuch.id,
+            `Automatisch generierter Rapport basierend auf hochgeladenem Gesuch "${gesuchTitel}".\n\nBeschreibung: ${beschreibung}\n\nDatei: ${fileName}\n\nStatus: Bereit zur Bearbeitung.`,
+            req.user.name || req.user.email
+        ]);
+        
+        const rapport = rapportResult.rows[0];
+        logger.info('Rapport automatisch erstellt', { 
+            rapportId: rapport.id, 
+            gesuchId: gesuch.id,
+            user: req.user.email 
+        });
+        
+        res.json({
+            success: true,
+            message: 'Gesuch erfolgreich hochgeladen und Rapport erstellt',
+            data: {
+                gesuch: gesuch,
+                rapport: rapport,
+                fileName: fileName,
+                fileSize: req.file.size
+            }
+        });
+        
+    } catch (error) {
+        logger.error('Fehler beim Gesuch-Upload:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Fehler beim Hochladen des Gesuchs',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Interner Server-Fehler'
+        });
+    }
+});
+
 // Upload document with AI analysis for Archiv
 app.post('/api/archiv/upload', upload.single('document'), async (req, res) => {
     try {
@@ -1305,11 +1440,67 @@ app.listen(PORT, () => {
     logger.info(`💾 Database: PostgreSQL (${pool.options.host}:${pool.options.port})`);
 });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-    logger.info('🛑 Shutting down server...');
-    pool.end(() => {
-        logger.info('✅ Database connections closed.');
-        process.exit(0);
+// Global Error Handler für unbehandelte Fehler
+app.use((err, req, res, next) => {
+    logger.error('Unbehandelter Fehler:', err);
+    res.status(500).json({
+        success: false,
+        message: 'Interner Serverfehler',
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Ein Fehler ist aufgetreten'
     });
+});
+
+// Ensure Upload Directory exists
+async function ensureUploadDirectory() {
+    const uploadDir = path.join(__dirname, '../../uploads');
+    try {
+        await fs.promises.access(uploadDir);
+        logger.info('✅ Upload-Verzeichnis existiert');
+    } catch {
+        await fs.promises.mkdir(uploadDir, { recursive: true });
+        logger.info('📁 Upload-Verzeichnis erstellt');
+    }
+}
+
+// Initialize upload directory on startup
+ensureUploadDirectory().catch(err => {
+    logger.error('❌ Fehler beim Erstellen des Upload-Verzeichnisses:', err);
+});
+
+// Database connection error handling
+pool.on('error', (err) => {
+    logger.error('Unerwarteter Datenbankfehler:', err);
+    if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+        logger.warn('🔄 Versuche Datenbankverbindung wiederherzustellen in 5 Sekunden...');
+        setTimeout(() => {
+            pool.connect()
+                .then(() => logger.info('✅ Datenbankverbindung wiederhergestellt'))
+                .catch(reconnectErr => logger.error('❌ Reconnect fehlgeschlagen:', reconnectErr));
+        }, 5000);
+    }
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    logger.info('🛑 SIGINT empfangen, fahre Server herunter...');
+    try {
+        await pool.end();
+        logger.info('✅ Datenbankverbindungen geschlossen');
+        process.exit(0);
+    } catch (err) {
+        logger.error('❌ Fehler beim Herunterfahren:', err);
+        process.exit(1);
+    }
+});
+
+process.on('SIGTERM', async () => {
+    logger.info('🛑 SIGTERM empfangen, fahre Server herunter...');
+    try {
+        await pool.end();
+        logger.info('✅ Datenbankverbindungen geschlossen');
+        process.exit(0);
+    } catch (err) {
+        logger.error('❌ Fehler beim Herunterfahren:', err);
+        process.exit(1);
+    }
 });

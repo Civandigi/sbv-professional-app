@@ -139,12 +139,12 @@ function getPageContent(page) {
         'dashboard': '', // Dashboard content is already in dashboard.html
         'gesuche': '<iframe src="pages/gesuche.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Gesuche - Kanban Board"></iframe>',
         'rapport': '<iframe src="pages/rapport.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Rapport - Verwaltung"></iframe>',
-        'archiv': '<iframe src="pages/archiv.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Archiv - Jahresarchive"></iframe>',
+        'archiv': getArchivContent(),
         'berichte': '<iframe src="pages/berichte.html" style="width: 100%; height: calc(100vh - 200px); border: none; border-radius: 12px; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Berichte - Retool Integration"></iframe>',
         'dokumente': '<iframe src="pages/dokumente.html" style="width: 100%; height: calc(100vh - 200px); border: none; border-radius: 12px; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Dokumente - Retool Integration"></iframe>',
         'benutzerverwaltung': getBenutzerverwaltungContent(),
         'systemlogs': getSystemLogsContent(),
-        'einstellungen': getEinstellungenContent()
+        'einstellungen': '<iframe src="pages/einstellungen.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV User-Verwaltung & Einstellungen"></iframe>'
     };
     
     return contents[page] || '<div class="text-center py-12"><p class="text-gray-500">Seite nicht gefunden</p></div>';
@@ -324,105 +324,119 @@ function getBenutzerverwaltungContent() {
 // Super Admin: System Logs Content
 function getSystemLogsContent() {
     return `
-        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
-            <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">
-                <svg class="inline w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                </svg>
-                System-Logs
-            </h2>
-            
-            <div class="mb-4 flex gap-2">
-                <select class="border rounded-lg px-3 py-2">
-                    <option>Alle Logs</option>
-                    <option>Login-Aktivitäten</option>
-                    <option>System-Fehler</option>
-                    <option>Datenbank-Operationen</option>
-                </select>
-                <button class="bg-[var(--color-light-blue)] text-[var(--color-black)] px-4 py-2 rounded-lg hover:bg-opacity-80 transition-colors">
-                    Aktualisieren
-                </button>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">System Logs</h2>
+                    <p class="text-gray-600">Systemaktivitäten und Datenbankverbindungen - Super Admin Zugriff</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">Datenbankstatus</div>
+                        <div class="text-sm font-semibold text-green-600">● Verbunden</div>
+                    </div>
+                    <button class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">
+                        Aktualisieren
+                    </button>
+                </div>
             </div>
             
-            <div class="space-y-2 max-h-96 overflow-y-auto">
-                <div class="bg-green-50 p-3 rounded border-l-4 border-green-400">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-medium text-green-800">
-                                <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                </svg>
-                                Erfolgreiche Anmeldung
-                            </p>
-                            <p class="text-sm text-green-600">Benutzer: superadmin@digitale-rakete.ch</p>
-                        </div>
-                        <span class="text-xs text-green-500">Heute, 14:30</span>
+            <!-- Database Connection Status -->
+            <div class="p-6 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Datenbankverbindung</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Host:</span>
+                        <span class="font-mono text-gray-900 ml-2">postgresql-sbv-fg-app-u38422.vm.elestio.app</span>
                     </div>
-                </div>
-                
-                <div class="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-medium text-blue-800">
-                                <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M20,18C20,21.63 16.79,22.87 12,22.87C7.21,22.87 4,21.63 4,18V6C4,2.37 7.21,1.13 12,1.13C16.79,1.13 20,2.37 20,6V18Z"/>
-                                </svg>
-                                Datenbankverbindung hergestellt
-                            </p>
-                            <p class="text-sm text-blue-600">PostgreSQL: postgresql-sbv-fg-app-u38422.vm.elestio.app</p>
-                        </div>
-                        <span class="text-xs text-blue-500">Heute, 14:28</span>
+                    <div>
+                        <span class="text-gray-600">Port:</span>
+                        <span class="font-mono text-gray-900 ml-2">25432</span>
                     </div>
-                </div>
-                
-                <div class="bg-gray-50 p-3 rounded border-l-4 border-gray-400">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-medium text-gray-800">
-                                <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,14L6.5,9.5L7.91,8.09L11,11.18L16.59,5.59L18,7L11,14Z"/>
-                                </svg>
-                                Server gestartet
-                            </p>
-                            <p class="text-sm text-gray-600">Port: 3000, Environment: development</p>
-                        </div>
-                        <span class="text-xs text-gray-500">Heute, 14:28</span>
-                    </div>
-                </div>
-                
-                <div class="bg-purple-50 p-3 rounded border-l-4 border-purple-400">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-medium text-purple-800">
-                                <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-                                </svg>
-                                Dashboard-Statistiken abgerufen
-                            </p>
-                            <p class="text-sm text-purple-600">API: /api/dashboard/stats</p>
-                        </div>
-                        <span class="text-xs text-purple-500">Heute, 14:25</span>
+                    <div>
+                        <span class="text-gray-600">Status:</span>
+                        <span class="text-green-600 font-semibold ml-2">Aktiv</span>
                     </div>
                 </div>
             </div>
             
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-green-50 p-4 rounded-lg text-center">
-                    <p class="text-2xl font-bold text-green-600">147</p>
-                    <p class="text-sm text-green-800">Erfolgreiche Logins</p>
-                </div>
-                <div class="bg-red-50 p-4 rounded-lg text-center">
-                    <p class="text-2xl font-bold text-red-600">2</p>
-                    <p class="text-sm text-red-800">Fehlgeschlagene Logins</p>
-                </div>
-                <div class="bg-blue-50 p-4 rounded-lg text-center">
-                    <p class="text-2xl font-bold text-blue-600">1,234</p>
-                    <p class="text-sm text-blue-800">API-Aufrufe heute</p>
-                </div>
-                <div class="bg-yellow-50 p-4 rounded-lg text-center">
-                    <p class="text-2xl font-bold text-yellow-600">0</p>
-                    <p class="text-sm text-yellow-800">System-Warnungen</p>
-                </div>
+            <!-- System Logs Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-3 px-6 font-semibold text-gray-600 uppercase tracking-wider text-xs">Zeit</th>
+                            <th class="py-3 px-6 font-semibold text-gray-600 uppercase tracking-wider text-xs">Level</th>
+                            <th class="py-3 px-6 font-semibold text-gray-600 uppercase tracking-wider text-xs">Benutzer</th>
+                            <th class="py-3 px-6 font-semibold text-gray-600 uppercase tracking-wider text-xs">Aktion</th>
+                            <th class="py-3 px-6 font-semibold text-gray-600 uppercase tracking-wider text-xs">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">2025-07-22 07:40:23</td>
+                            <td class="py-3 px-6"><span class="text-blue-600 font-semibold">INFO</span></td>
+                            <td class="py-3 px-6 text-gray-900">System</td>
+                            <td class="py-3 px-6 text-gray-900">Server gestartet</td>
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">Port 3000</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">2025-07-22 07:40:23</td>
+                            <td class="py-3 px-6"><span class="text-green-600 font-semibold">SUCCESS</span></td>
+                            <td class="py-3 px-6 text-gray-900">Database</td>
+                            <td class="py-3 px-6 text-gray-900">PostgreSQL verbunden</td>
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">postgresql-sbv-fg-app-u38422.vm.elestio.app:25432</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">2025-07-22 07:35:14</td>
+                            <td class="py-3 px-6"><span class="text-blue-600 font-semibold">INFO</span></td>
+                            <td class="py-3 px-6 text-gray-900">superadmin@digitale-rakete.ch</td>
+                            <td class="py-3 px-6 text-gray-900">Login erfolgreich</td>
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">IP: 127.0.0.1</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">2025-07-22 07:30:42</td>
+                            <td class="py-3 px-6"><span class="text-blue-600 font-semibold">INFO</span></td>
+                            <td class="py-3 px-6 text-gray-900">superadmin@digitale-rakete.ch</td>
+                            <td class="py-3 px-6 text-gray-900">Einstellungen aktualisiert</td>
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">Session Timeout geändert</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">2025-07-22 07:25:18</td>
+                            <td class="py-3 px-6"><span class="text-amber-600 font-semibold">WARNING</span></td>
+                            <td class="py-3 px-6 text-gray-900">user@sbv.ch</td>
+                            <td class="py-3 px-6 text-gray-900">Login-Versuch fehlgeschlagen</td>
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">Falsches Passwort</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">2025-07-22 06:00:00</td>
+                            <td class="py-3 px-6"><span class="text-green-600 font-semibold">SUCCESS</span></td>
+                            <td class="py-3 px-6 text-gray-900">System</td>
+                            <td class="py-3 px-6 text-gray-900">Backup erstellt</td>
+                            <td class="py-3 px-6 font-mono text-xs text-gray-500">Automatisches Backup</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Statistics Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-green-600">147</p>
+                <p class="text-sm text-gray-700">Erfolgreiche Logins</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-red-600">2</p>
+                <p class="text-sm text-gray-700">Fehlgeschlagene Logins</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-blue-600">1,234</p>
+                <p class="text-sm text-gray-700">API-Aufrufe heute</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-amber-600">0</p>
+                <p class="text-sm text-gray-700">System-Warnungen</p>
             </div>
         </div>
     `;
@@ -464,6 +478,11 @@ function initializePageFeatures(page) {
         case 'benutzerverwaltung':
             console.log('Initializing Benutzerverwaltung page - Super Admin only');
             break;
+        case 'archiv':
+            console.log('Initializing Archiv page with upload functionality');
+            // Load archive data after page is rendered
+            setTimeout(loadArchivData, 100);
+            break;
         case 'systemlogs':
             console.log('Initializing System Logs page - Super Admin only');
             break;
@@ -475,6 +494,384 @@ function initializePageFeatures(page) {
     }
 }
 
+// Archiv Content with Upload Functionality
+function getArchivContent() {
+    return `
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Archiv</h1>
+                <button onclick="showUploadModal()" class="bg-[var(--color-green)] hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    Gesuch hochladen
+                </button>
+            </div>
+
+            <!-- Statistiken -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Gesamtarchiv</p>
+                            <p class="text-2xl font-bold text-gray-900" id="stats-total">2,341</p>
+                        </div>
+                        <div class="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Dieses Jahr</p>
+                            <p class="text-2xl font-bold text-gray-900" id="stats-year">487</p>
+                        </div>
+                        <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Genehmigt</p>
+                            <p class="text-2xl font-bold text-gray-900" id="stats-approved">89%</p>
+                        </div>
+                        <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Speicherplatz</p>
+                            <p class="text-2xl font-bold text-gray-900" id="stats-storage">3.2 GB</p>
+                        </div>
+                        <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Such- und Filterbereich -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="col-span-2">
+                        <input type="text" id="searchInput" placeholder="Suche nach Gesuch, Antragsteller, Projekt..." 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-green)] focus:border-transparent">
+                    </div>
+                    <select id="filterYear" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-green)] focus:border-transparent">
+                        <option>Alle Jahre</option>
+                        <option>2025</option>
+                        <option>2024</option>
+                        <option>2023</option>
+                        <option>2022</option>
+                    </select>
+                    <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-green)] focus:border-transparent">
+                        <option>Alle Status</option>
+                        <option>Genehmigt</option>
+                        <option>Abgelehnt</option>
+                        <option>In Bearbeitung</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Archiv-Tabelle -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gesuch-Nr.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titel</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Antragsteller</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archivTable" class="bg-white divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2025-001</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Erneuerung Melkstand Hof Müller</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Hans Müller</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">15.01.2025</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Genehmigt
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
+                                    <button class="text-gray-600 hover:text-gray-900">Download</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2025-002</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Solarpanels Scheune</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Anna Schmidt</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">18.01.2025</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        In Bearbeitung
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
+                                    <button class="text-gray-600 hover:text-gray-900">Download</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Modal -->
+        <div id="uploadModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Gesuch hochladen</h3>
+                    
+                    <form id="uploadForm" onsubmit="handleGesuchUpload(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PDF-Datei</label>
+                            <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-green)]">
+                            <p class="text-xs text-gray-500 mt-1">Nur PDF-Dateien bis 10MB</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jahr</label>
+                            <select id="jahr" name="jahr" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-green)]">
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Beschreibung</label>
+                            <textarea id="beschreibung" name="beschreibung" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-green)]"
+                                      placeholder="Kurze Beschreibung des Gesuchs..."></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end gap-3">
+                            <button type="button" onclick="closeUploadModal()"
+                                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">
+                                Abbrechen
+                            </button>
+                            <button type="submit"
+                                    class="px-4 py-2 bg-[var(--color-green)] text-white rounded-md hover:bg-green-700">
+                                Hochladen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Upload-Funktionen
+function showUploadModal() {
+    document.getElementById('uploadModal').classList.remove('hidden');
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+    document.getElementById('uploadForm').reset();
+}
+
+async function handleGesuchUpload(event) {
+    event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Wird hochgeladen...';
+    
+    try {
+        const fileInput = document.getElementById('pdfFile');
+        const file = fileInput.files[0];
+        const jahr = document.getElementById('jahr').value;
+        const beschreibung = document.getElementById('beschreibung').value;
+        
+        if (!file || file.type !== 'application/pdf') {
+            alert('Bitte wählen Sie eine PDF-Datei aus.');
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            alert('Die Datei ist zu groß. Maximale Größe: 10MB');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('gesuch', file);
+        formData.append('jahr', jahr);
+        formData.append('beschreibung', beschreibung);
+        
+        const token = sessionStorage.getItem('sbv_token');
+        if (!token) {
+            alert('Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.');
+            window.location.href = '/login.html';
+            return;
+        }
+        
+        const response = await fetch('/api/gesuche/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            alert(`✅ Gesuch erfolgreich hochgeladen!\n\n📄 Gesuch-ID: ${result.data.gesuch.id}\n📊 Rapport automatisch erstellt: ${result.data.rapport.id}\n📁 Datei: ${result.data.fileName}`);
+            closeUploadModal();
+            loadArchivData(); // Refresh data
+        } else {
+            alert(`❌ Fehler beim Hochladen: ${result.message}`);
+        }
+    } catch (error) {
+        console.error('Upload-Fehler:', error);
+        alert('❌ Fehler beim Hochladen der Datei: ' + error.message);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
+}
+
+// Load archive data from API
+async function loadArchivData() {
+    try {
+        const token = sessionStorage.getItem('sbv_token');
+        const response = await fetch('/api/gesuche', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            updateArchivTable(result.data);
+            updateArchivStats(result.data);
+        }
+    } catch (error) {
+        console.error('Fehler beim Laden der Archiv-Daten:', error);
+    }
+}
+
+// Update archive table with real data
+function updateArchivTable(gesuche) {
+    const tableBody = document.getElementById('archivTable');
+    if (!tableBody || !gesuche) return;
+    
+    tableBody.innerHTML = gesuche.map(gesuch => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${gesuch.jahr}-${gesuch.id.toString().padStart(3, '0')}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gesuch.titel}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${gesuch.antragsteller || 'Unbekannt'}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${new Date(gesuch.eingereicht_am).toLocaleDateString('de-CH')}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(gesuch.status)}">
+                    ${getStatusText(gesuch.status)}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button onclick="viewGesuch(${gesuch.id})" class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
+                ${gesuch.uploaded_file ? `<button onclick="downloadGesuch(${gesuch.id})" class="text-gray-600 hover:text-gray-900">Download</button>` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update archive statistics
+function updateArchivStats(gesuche) {
+    if (!gesuche) return;
+    
+    const currentYear = new Date().getFullYear();
+    const thisYearGesuche = gesuche.filter(g => g.jahr === currentYear);
+    const approvedGesuche = gesuche.filter(g => g.status === 'genehmigt');
+    
+    document.getElementById('stats-total').textContent = gesuche.length.toLocaleString();
+    document.getElementById('stats-year').textContent = thisYearGesuche.length.toLocaleString();
+    document.getElementById('stats-approved').textContent = `${Math.round((approvedGesuche.length / gesuche.length) * 100)}%`;
+}
+
+// Helper functions
+function getStatusClass(status) {
+    switch(status) {
+        case 'genehmigt': return 'bg-green-100 text-green-800';
+        case 'abgelehnt': return 'bg-red-100 text-red-800';
+        case 'eingereicht': return 'bg-yellow-100 text-yellow-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function getStatusText(status) {
+    switch(status) {
+        case 'genehmigt': return 'Genehmigt';
+        case 'abgelehnt': return 'Abgelehnt';
+        case 'eingereicht': return 'In Bearbeitung';
+        default: return 'Unbekannt';
+    }
+}
+
+function viewGesuch(id) {
+    // TODO: Implement gesuch detail view
+    alert(`Gesuch ${id} anzeigen - Feature wird noch implementiert`);
+}
+
+function downloadGesuch(id) {
+    // TODO: Implement file download
+    const token = sessionStorage.getItem('sbv_token');
+    window.open(`/api/gesuche/${id}/download?token=${token}`, '_blank');
+}
+
 // Export functions to global scope for dashboard.html
 window.getPageContent = getPageContent;
 window.getPageTitle = getPageTitle;
+
+// Token-Expiry Check für automatischen Logout
+function checkTokenExpiry() {
+    const token = sessionStorage.getItem('sbv_token');
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.exp * 1000 < Date.now()) {
+                console.log('Token abgelaufen - Automatischer Logout');
+                sessionStorage.removeItem('sbv_token');
+                sessionStorage.removeItem('sbv_user');
+                window.location.href = '/login.html';
+            }
+        } catch (e) {
+            console.error('Token-Prüfung fehlgeschlagen:', e);
+            sessionStorage.removeItem('sbv_token');
+            sessionStorage.removeItem('sbv_user');
+            window.location.href = '/login.html';
+        }
+    }
+}
+
+// Prüfe Token-Gültigkeit alle 5 Minuten
+setInterval(checkTokenExpiry, 5 * 60 * 1000);
+
+// Initiale Token-Prüfung beim Seitenaufruf
+document.addEventListener('DOMContentLoaded', checkTokenExpiry);
