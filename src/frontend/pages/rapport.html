@@ -162,6 +162,9 @@
                     <button class="tab-button" onclick="switchTab('kpis')">
                         KPI-Übersicht
                     </button>
+                    <button class="tab-button" onclick="switchTab('verwaltung')">
+                        Report-Verwaltung
+                    </button>
                 </nav>
             </div>
 
@@ -198,6 +201,175 @@
             <div id="kpis-tab" class="p-6 hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="kpisContainer">
                     <!-- KPI Charts und Metriken -->
+                </div>
+            </div>
+
+            <!-- Tab Content: Report-Verwaltung -->
+            <div id="verwaltung-tab" class="p-6 hidden">
+                <div class="space-y-6">
+                    <!-- Übersicht und Aktionen -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-900">Report-Verwaltung</h2>
+                                <p class="text-gray-600">Verwalten Sie eingereichte Reports und erstellen Sie Gesamtberichte</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="generateFinalReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-file-export mr-2"></i>Gesamtreport erstellen
+                                </button>
+                                <button onclick="exportToGoogleDocs()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fab fa-google mr-2"></i>Google Docs Export
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Status-Übersicht -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <p class="text-2xl font-bold text-blue-600" id="totalReports">-</p>
+                                <p class="text-blue-600">Reports gesamt</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <p class="text-2xl font-bold text-yellow-600" id="pendingReports">-</p>
+                                <p class="text-yellow-600">Ausstehend</p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <p class="text-2xl font-bold text-green-600" id="approvedReports">-</p>
+                                <p class="text-green-600">Bestätigt</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <p class="text-2xl font-bold text-purple-600" id="completedReports">-</p>
+                                <p class="text-purple-600">Abgeschlossen</p>
+                            </div>
+                        </div>
+
+                        <!-- Filter und Suche -->
+                        <div class="mb-6 flex gap-4">
+                            <input type="text" id="reportSearch" placeholder="Reports suchen..." 
+                                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <select id="statusFilterReports" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Alle Status</option>
+                                <option value="ausstehend">Ausstehend</option>
+                                <option value="in_bearbeitung">In Bearbeitung</option>
+                                <option value="bestätigt">Bestätigt</option>
+                                <option value="abgeschlossen">Abgeschlossen</option>
+                            </select>
+                            <select id="yearFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Alle Jahre</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Reports-Tabelle -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            <input type="checkbox" id="selectAllReports" onchange="toggleSelectAllReports()" class="rounded border-gray-300">
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Report</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teilprojekt</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jahr/Periode</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Budget</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fortschritt</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                            <div class="flex items-center justify-center">
+                                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Reports werden geladen...
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Bulk-Aktionen für Reports -->
+                        <div id="bulkReportActions" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+                            <div class="flex items-center gap-4">
+                                <span class="font-medium"><span id="selectedReportCount">0</span> Reports ausgewählt</span>
+                                <button onclick="bulkApproveReports()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                                    Alle bestätigen
+                                </button>
+                                <button onclick="bulkRejectReports()" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                                    Alle ablehnen
+                                </button>
+                                <button onclick="exportSelectedReports()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                    Auswahl exportieren
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gesamtreport Vorschau -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Gesamtreport Vorschau</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <p class="font-medium">Jahresbericht 2025 - Kommunikationsförderung Landwirtschaft</p>
+                                    <p class="text-sm text-gray-600">Basierend auf bestätigten Teilprojekt-Reports</p>
+                                </div>
+                                <button onclick="previewFinalReport()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-eye mr-2"></i>Vollständige Vorschau
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-white p-3 rounded">
+                                    <p class="text-sm font-medium text-gray-700">Teilprojekte</p>
+                                    <p class="text-xl font-bold text-blue-600" id="totalTeilprojekte">6</p>
+                                </div>
+                                <div class="bg-white p-3 rounded">
+                                    <p class="text-sm font-medium text-gray-700">Gesamtbudget</p>
+                                    <p class="text-xl font-bold text-green-600" id="totalBudget">CHF 4.41M</p>
+                                </div>
+                                <div class="bg-white p-3 rounded">
+                                    <p class="text-sm font-medium text-gray-700">Bearbeitungsstand</p>
+                                    <p class="text-xl font-bold text-purple-600" id="overallProgress">85%</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span>TP1 - Leitmedien</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Bestätigt</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>TP2 - Digitale Medien</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Bestätigt</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>TP3 - Messen & Ausstellungen</span>
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Ausstehend</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>TP4 - Social Media</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Bestätigt</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>TP5 - Newsletter</span>
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">In Bearbeitung</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>TP6 - Werbematerialien</span>
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Ausstehend</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -761,6 +933,11 @@
             // Aktiven Tab anzeigen
             document.getElementById(`${tabName}-tab`).classList.remove('hidden');
             event.target.classList.add('active');
+            
+            // Spezielle Initialisierung für Report-Verwaltung Tab
+            if (tabName === 'verwaltung') {
+                loadReports();
+            }
         }
 
         function filterRapporte() {
@@ -817,6 +994,282 @@
             console.log('✅ Genehmige Rapport:', id);
             alert(`Rapport ${id} wurde genehmigt!`);
             loadRapporte();
+        }
+
+        // ============= Report-Verwaltung Funktionen =============
+        let currentReports = [];
+        let selectedReports = [];
+
+        // Reports laden
+        async function loadReports() {
+            console.log('📊 Lade Reports für Admin-Verwaltung...');
+            
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                if (!token) {
+                    throw new Error('Kein Authentifizierungstoken gefunden');
+                }
+
+                const response = await fetch('/api/rapporte/admin/all', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const apiResponse = await response.json();
+                console.log('✅ Reports API Response:', apiResponse);
+
+                if (apiResponse.success && apiResponse.data) {
+                    currentReports = apiResponse.data;
+                    console.log('📋 Geladene Reports:', currentReports.length);
+                    renderReportTable(currentReports);
+                    updateReportStats(currentReports);
+                } else {
+                    throw new Error('API Response Format ungültig: ' + JSON.stringify(apiResponse));
+                }
+
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Reports:', error);
+                document.getElementById('reportTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-red-600">
+                            Fehler beim Laden der Reports: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Report-Tabelle rendern
+        function renderReportTable(reports) {
+            const tbody = document.getElementById('reportTableBody');
+
+            if (!reports || reports.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                            Keine Reports gefunden.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = reports.map(report => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <input type="checkbox" value="${report.id}" onchange="toggleReportSelection(${report.id})">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-file-alt text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">${report.rapport_nummer}</p>
+                                <p class="text-xs text-gray-500">${report.erstellt_am ? new Date(report.erstellt_am).toLocaleDateString('de-DE') : 'Unbekannt'}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${report.teilprojekt || 'Unbekannt'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${report.jahr}/${report.periode || 'JAHR'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(report.status)}">
+                            ${report.status || 'ausstehend'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div>
+                            <p class="font-medium">CHF ${(report.budget_brutto || 0).toLocaleString('de-CH')}</p>
+                            <p class="text-xs">Ist: CHF ${(report.ist_brutto || 0).toLocaleString('de-CH')}</p>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div class="flex items-center">
+                            <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${calculateProgress(report)}%"></div>
+                            </div>
+                            <span class="text-xs">${calculateProgress(report)}%</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <button onclick="viewReport(${report.id})" class="text-blue-600 hover:text-blue-900" title="Anzeigen">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="approveReport(${report.id})" class="text-green-600 hover:text-green-900" title="Bestätigen">
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                        <button onclick="editReport(${report.id})" class="text-orange-600 hover:text-orange-900" title="Bearbeiten">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="downloadReport(${report.id})" class="text-purple-600 hover:text-purple-900" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Report-Statistiken aktualisieren
+        function updateReportStats(reports) {
+            const total = reports.length;
+            const pending = reports.filter(r => r.status === 'ausstehend').length;
+            const approved = reports.filter(r => r.status === 'bestätigt').length;
+            const completed = reports.filter(r => r.status === 'abgeschlossen').length;
+
+            document.getElementById('totalReports').textContent = total;
+            document.getElementById('pendingReports').textContent = pending;
+            document.getElementById('approvedReports').textContent = approved;
+            document.getElementById('completedReports').textContent = completed;
+        }
+
+        // Hilfsfunktionen
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'bestätigt': return 'bg-green-100 text-green-800';
+                case 'abgeschlossen': return 'bg-purple-100 text-purple-800';
+                case 'in_bearbeitung': return 'bg-blue-100 text-blue-800';
+                case 'ausstehend': return 'bg-yellow-100 text-yellow-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function calculateProgress(report) {
+            if (!report.budget_brutto || report.budget_brutto === 0) return 0;
+            const progress = Math.round((report.ist_brutto / report.budget_brutto) * 100);
+            return Math.min(progress, 100);
+        }
+
+        // Report-Aktionen
+        function viewReport(reportId) {
+            console.log('Zeige Report:', reportId);
+            // TODO: Report-Details Modal öffnen
+        }
+
+        async function approveReport(reportId) {
+            if (!confirm('Möchten Sie diesen Report bestätigen?')) return;
+            
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                const response = await fetch(`/api/rapporte/${reportId}/approve`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Report erfolgreich bestätigt!');
+                    loadReports(); // Tabelle aktualisieren
+                } else {
+                    throw new Error('Fehler beim Bestätigen');
+                }
+            } catch (error) {
+                alert('Fehler beim Bestätigen: ' + error.message);
+            }
+        }
+
+        function editReport(reportId) {
+            console.log('Bearbeite Report:', reportId);
+            // TODO: Report-Bearbeitung
+        }
+
+        function downloadReport(reportId) {
+            console.log('Download Report:', reportId);
+            // TODO: Report-Download
+        }
+
+        // Bulk-Aktionen für Reports
+        function toggleReportSelection(reportId) {
+            const checkbox = event.target;
+            if (checkbox.checked) {
+                selectedReports.push(reportId);
+            } else {
+                selectedReports = selectedReports.filter(id => id !== reportId);
+            }
+            updateBulkReportActions();
+        }
+
+        function toggleSelectAllReports() {
+            const selectAll = document.getElementById('selectAllReports');
+            const checkboxes = document.querySelectorAll('#reportTableBody input[type="checkbox"]');
+            
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                const reportId = parseInt(cb.value);
+                if (selectAll.checked && !selectedReports.includes(reportId)) {
+                    selectedReports.push(reportId);
+                }
+            });
+            
+            if (!selectAll.checked) {
+                selectedReports = [];
+            }
+            
+            updateBulkReportActions();
+        }
+
+        function updateBulkReportActions() {
+            const bulkActions = document.getElementById('bulkReportActions');
+            const selectedCount = document.getElementById('selectedReportCount');
+            
+            selectedCount.textContent = selectedReports.length;
+            
+            if (selectedReports.length > 0) {
+                bulkActions.classList.remove('hidden');
+            } else {
+                bulkActions.classList.add('hidden');
+            }
+        }
+
+        function bulkApproveReports() {
+            if (confirm(`${selectedReports.length} Reports bestätigen?`)) {
+                console.log('Bulk-Bestätigung für:', selectedReports);
+                // TODO: Bulk-API-Call
+            }
+        }
+
+        function bulkRejectReports() {
+            if (confirm(`${selectedReports.length} Reports ablehnen?`)) {
+                console.log('Bulk-Ablehnung für:', selectedReports);
+                // TODO: Bulk-API-Call
+            }
+        }
+
+        function exportSelectedReports() {
+            console.log('Exportiere ausgewählte Reports:', selectedReports);
+            // TODO: Export-Funktion
+        }
+
+        // Gesamtreport-Funktionen
+        function generateFinalReport() {
+            if (confirm('Gesamtreport aus allen bestätigten Teilprojekten erstellen?')) {
+                console.log('Erstelle Gesamtreport...');
+                // TODO: Gesamtreport-Generierung
+                alert('Gesamtreport wird erstellt... Dies kann einige Minuten dauern.');
+            }
+        }
+
+        function exportToGoogleDocs() {
+            if (confirm('Gesamtreport als Google Docs exportieren?')) {
+                console.log('Exportiere zu Google Docs...');
+                // TODO: Google Docs Integration
+                alert('Google Docs Export wird gestartet...');
+            }
+        }
+
+        function previewFinalReport() {
+            console.log('Zeige Gesamtreport-Vorschau...');
+            // TODO: Vorschau-Modal öffnen
         }
     </script>
 </body>

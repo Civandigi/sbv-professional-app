@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Teilprojekte Laden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">🔧 DEBUG: Teilprojekte Laden</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">🧪 Tests</h2>
+            <div class="space-y-2">
+                <button onclick="testAPI()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    1. API Testen
+                </button>
+                <button onclick="testDOM()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ml-2">
+                    2. DOM Testen
+                </button>
+                <button onclick="simulateLoad()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 ml-2">
+                    3. Simulation
+                </button>
+            </div>
+            <div id="debugOutput" class="mt-4 p-4 bg-gray-50 rounded text-sm font-mono"></div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">📋 Teilprojekte Container</h2>
+            <div id="teilprojekteContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[200px] border-2 border-dashed border-gray-300 p-4">
+                <div class="text-center py-8 text-gray-500">
+                    Container ist leer - warte auf Daten...
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">📊 Console Log</h2>
+            <div id="consoleLog" class="bg-black text-green-400 p-4 rounded text-sm font-mono h-64 overflow-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // Console Log Capture
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        const logContainer = document.getElementById('consoleLog');
+        
+        function addToLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : type === 'warn' ? 'text-yellow-400' : 'text-green-400';
+            logContainer.innerHTML += `<div class="${color}">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog('log', args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog('error', args.join(' '));
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToLog('warn', args.join(' '));
+        };
+        
+        function debug(message) {
+            const debugDiv = document.getElementById('debugOutput');
+            debugDiv.innerHTML += `<div class="mb-2">${new Date().toLocaleTimeString()}: ${message}</div>`;
+            console.log(message);
+        }
+        
+        async function testAPI() {
+            debug('🔍 Teste API...');
+            
+            try {
+                const response = await fetch('/api/teilprojekte');
+                debug(`✅ Response Status: ${response.status} ${response.statusText}`);
+                
+                const data = await response.json();
+                debug(`📦 Response Data: ${JSON.stringify(data, null, 2)}`);
+                
+                if (data.success && data.data) {
+                    debug(`📊 Teilprojekte gefunden: ${data.data.length}`);
+                    return data.data;
+                } else {
+                    debug('❌ Keine validen Daten in Response');
+                    return null;
+                }
+                
+            } catch (error) {
+                debug(`❌ API Fehler: ${error.message}`);
+                return null;
+            }
+        }
+        
+        function testDOM() {
+            debug('🔍 Teste DOM...');
+            
+            const container = document.getElementById('teilprojekteContainer');
+            if (!container) {
+                debug('❌ Container "teilprojekteContainer" nicht gefunden!');
+                return false;
+            }
+            
+            debug('✅ Container gefunden');
+            debug(`📦 Container classList: ${container.classList.toString()}`);
+            debug(`📦 Container innerHTML length: ${container.innerHTML.length}`);
+            
+            return true;
+        }
+        
+        async function simulateLoad() {
+            debug('🚀 Simuliere loadTeilprojekteFromDatabase...');
+            
+            // Test DOM
+            if (!testDOM()) return;
+            
+            // Test API
+            const teilprojekte = await testAPI();
+            if (!teilprojekte) return;
+            
+            // Test Display Function
+            debug('🎨 Teste displayTeilprojekte...');
+            displayTeilprojekte(teilprojekte);
+        }
+        
+        function displayTeilprojekte(teilprojekte) {
+            debug(`🎨 displayTeilprojekte gestartet mit ${teilprojekte.length} Teilprojekten`);
+            
+            const container = document.getElementById('teilprojekteContainer');
+            if (!container) {
+                debug('❌ Container nicht gefunden in displayTeilprojekte!');
+                return;
+            }
+
+            if (!teilprojekte || teilprojekte.length === 0) {
+                debug('⚠️ Keine Teilprojekte zum Anzeigen');
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">Keine Teilprojekte gefunden</div>';
+                return;
+            }
+
+            debug('🔨 Erstelle HTML für Teilprojekte...');
+            
+            try {
+                const html = teilprojekte.map(tp => {
+                    debug(`📝 Erstelle Karte für: ${tp.name}`);
+                    return `
+                        <div class="bg-white p-6 rounded-lg shadow-sm border">
+                            <h3 class="text-lg font-semibold mb-4">${tp.name}</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Budget:</span>
+                                    <span class="font-semibold">CHF ${parseFloat(tp.budget || 0).toLocaleString()}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Beschreibung:</span>
+                                    <p class="text-sm text-gray-700 mt-1">${tp.beschreibung || 'Keine Beschreibung verfügbar'}</p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Kategorie:</span>
+                                    <span class="text-sm text-gray-700">${tp.kategorie || 'Allgemein'}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Status:</span>
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">${tp.status}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                debug(`✅ HTML erstellt (${html.length} Zeichen)`);
+                container.innerHTML = html;
+                debug(`✅ Container innerHTML gesetzt`);
+                
+            } catch (error) {
+                debug(`❌ Fehler beim Erstellen der HTML: ${error.message}`);
+            }
+        }
+        
+        // Auto-start when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            debug('🚀 Debug-Seite geladen');
+            console.log('Debug-Seite bereit für Tests');
+        });
+    </script>
+</body>
+</html>

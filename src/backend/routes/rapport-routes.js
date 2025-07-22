@@ -1,0 +1,310 @@
+const express = require('express');
+
+// Export eine Funktion, die pool entgegennimmt
+module.exports = (pool) => {
+    const router = express.Router();
+
+    // GET: Alle Rapporte abrufen
+    router.get('/api/rapporte', async (req, res) => {
+        try {
+            const { jahr, periode, teilprojekt, status } = req.query;
+        let query = `
+            SELECT r.*, 
+                   COUNT(DISTINCT rm.id) as anzahl_massnahmen,
+                   COUNT(DISTINCT rk.id) as anzahl_kpis,
+                   AVG(rk.zielerreichung) as durchschnitt_kpi_erreichung,
+                   u.vorname, u.nachname
+            FROM rapporte r
+            LEFT JOIN rapport_massnahmen rm ON r.id = rm.rapport_id
+            LEFT JOIN rapport_kpis rk ON r.id = rk.rapport_id
+            LEFT JOIN sbv_benutzer u ON r.erstellt_von = u.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (jahr) {
+            query += ' AND r.jahr = ?';
+            params.push(jahr);
+        }
+        if (periode) {
+            query += ' AND r.periode = ?';
+            params.push(periode);
+        }
+        if (teilprojekt) {
+            query += ' AND r.teilprojekt = ?';
+            params.push(teilprojekt);
+        }
+        if (status) {
+            query += ' AND r.status = ?';
+            params.push(status);
+        }
+
+        query += ' GROUP BY r.id ORDER BY r.jahr DESC, r.periode DESC';
+
+        const rapporte = await pool.query(query, params);
+        res.json(rapporte);
+    } catch (error) {
+        console.error('Error fetching rapporte:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET: Einzelnen Rapport mit Details abrufen
+router.get('/api/rapporte/:id', async (req, res) => {
+    try {
+        const rapportId = req.params.id;
+        
+        // Rapport-Grunddaten
+        const [rapport] = await pool.query(
+            `SELECT r.*, u.vorname, u.nachname 
+             FROM rapporte r 
+             LEFT JOIN sbv_benutzer u ON r.erstellt_von = u.id 
+             WHERE r.id = ?`,
+            [rapportId]
+        );
+        
+        if (!rapport.length) {
+            return res.status(404).json({ error: 'Rapport nicht gefunden' });
+        }
+
+        // Maßnahmen abrufen
+        const massnahmen = await pool.query(
+            'SELECT * FROM rapport_massnahmen WHERE rapport_id = ? ORDER BY sortierung',
+            [rapportId]
+        );
+
+        // KPIs abrufen
+        const kpis = await pool.query(
+            'SELECT * FROM rapport_kpis WHERE rapport_id = ? ORDER BY sortierung',
+            [rapportId]
+        );
+
+        const result = {
+            ...rapport[0],
+            massnahmen,
+            kpis
+        };
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching rapport details:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST: Neuen Rapport erstellen
+router.post('/api/rapporte', async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const { teilprojekt, jahr, periode, massnahmen, kpis, ...rapportData } = req.body;
+        
+        // Generiere Rapport-Nummer
+        const [lastRapport] = await connection.query(
+            'SELECT rapport_nummer FROM rapporte WHERE jahr = ? ORDER BY id DESC LIMIT 1',
+            [jahr]
+        );
+        const nextNumber = lastRapport.length > 0 
+            ? parseInt(lastRapport[0].rapport_nummer.split('-')[2]) + 1 
+            : 1;
+        const rapportNummer = `R-${jahr}-${String(nextNumber).padStart(3, '0')}`;
+
+        // Budget aus Template laden falls nicht provided
+        let budgetBrutto = rapportData.budget_brutto;
+        if (!budgetBrutto) {
+            const [templateData] = await connection.query(
+                'SELECT budget_standard FROM teilprojekt_templates WHERE teilprojekt = ?',
+                [teilprojekt]
+            );
+            budgetBrutto = templateData[0]?.budget_standard || 0;
+        }
+
+        // Rapport erstellen
+        const [result] = await connection.query(
+            `INSERT INTO rapporte (
+                rapport_nummer, teilprojekt, jahr, periode, budget_brutto, ist_brutto,
+                aufwandsminderung, erstellt_von, was_lief_gut, abweichungen, lessons_learned
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                rapportNummer, teilprojekt, jahr, periode, budgetBrutto,
+                rapportData.ist_brutto || 0, rapportData.aufwandsminderung || 0,
+                req.user?.id || 1, // Fallback wenn user nicht verfügbar
+                rapportData.was_lief_gut, rapportData.abweichungen, 
+                rapportData.lessons_learned
+            ]
+        );
+
+        const rapportId = result.insertId;
+
+        // Maßnahmen einfügen
+        if (massnahmen && massnahmen.length > 0) {
+            for (const [index, massnahme] of massnahmen.entries()) {
+                await connection.query(
+                    `INSERT INTO rapport_massnahmen 
+                    (rapport_id, massnahme_name, budget_plan, ist_wert, sortierung) 
+                    VALUES (?, ?, ?, ?, ?)`,
+                    [rapportId, massnahme.name, massnahme.budget || 0, massnahme.ist || 0, index]
+                );
+            }
+        }
+
+        // KPIs einfügen
+        if (kpis && kpis.length > 0) {
+            for (const [index, kpi] of kpis.entries()) {
+                await connection.query(
+                    `INSERT INTO rapport_kpis 
+                    (rapport_id, kpi_name, einheit, zielwert, istwert, sortierung) 
+                    VALUES (?, ?, ?, ?, ?, ?)`,
+                    [rapportId, kpi.name, kpi.einheit, kpi.zielwert || 0, kpi.istwert || 0, index]
+                );
+            }
+        }
+
+        await connection.commit();
+        res.status(201).json({ 
+            success: true, 
+            rapportId, 
+            rapportNummer,
+            message: 'Rapport erfolgreich erstellt' 
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error creating rapport:', error);
+        res.status(500).json({ error: error.message });
+    } finally {
+        connection.release();
+    }
+});
+
+// PUT: Rapport aktualisieren (nur für Admin)
+router.put('/api/rapporte/:id', requireAdmin, async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const { massnahmen, kpis, ...rapportData } = req.body;
+        
+        // Rapport aktualisieren
+        const updateFields = {};
+        if (rapportData.ist_brutto !== undefined) updateFields.ist_brutto = rapportData.ist_brutto;
+        if (rapportData.aufwandsminderung !== undefined) updateFields.aufwandsminderung = rapportData.aufwandsminderung;
+        if (rapportData.was_lief_gut !== undefined) updateFields.was_lief_gut = rapportData.was_lief_gut;
+        if (rapportData.abweichungen !== undefined) updateFields.abweichungen = rapportData.abweichungen;
+        if (rapportData.lessons_learned !== undefined) updateFields.lessons_learned = rapportData.lessons_learned;
+        if (rapportData.status !== undefined) updateFields.status = rapportData.status;
+        
+        updateFields.aktualisiert_am = new Date();
+
+        if (Object.keys(updateFields).length > 0) {
+            await connection.query(
+                'UPDATE rapporte SET ? WHERE id = ?',
+                [updateFields, req.params.id]
+            );
+        }
+
+        // Alte Maßnahmen und KPIs löschen
+        await connection.query('DELETE FROM rapport_massnahmen WHERE rapport_id = ?', [req.params.id]);
+        await connection.query('DELETE FROM rapport_kpis WHERE rapport_id = ?', [req.params.id]);
+
+        // Neue Maßnahmen einfügen
+        if (massnahmen && massnahmen.length > 0) {
+            for (const [index, massnahme] of massnahmen.entries()) {
+                await connection.query(
+                    `INSERT INTO rapport_massnahmen 
+                    (rapport_id, massnahme_name, budget_plan, ist_wert, sortierung) 
+                    VALUES (?, ?, ?, ?, ?)`,
+                    [req.params.id, massnahme.name, massnahme.budget || 0, massnahme.ist || 0, index]
+                );
+            }
+        }
+
+        // Neue KPIs einfügen
+        if (kpis && kpis.length > 0) {
+            for (const [index, kpi] of kpis.entries()) {
+                await connection.query(
+                    `INSERT INTO rapport_kpis 
+                    (rapport_id, kpi_name, einheit, zielwert, istwert, sortierung) 
+                    VALUES (?, ?, ?, ?, ?, ?)`,
+                    [req.params.id, kpi.name, kpi.einheit, kpi.zielwert || 0, kpi.istwert || 0, index]
+                );
+            }
+        }
+
+        await connection.commit();
+        res.json({ success: true, message: 'Rapport erfolgreich aktualisiert' });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error updating rapport:', error);
+        res.status(500).json({ error: error.message });
+    } finally {
+        connection.release();
+    }
+});
+
+// DELETE: Rapport löschen (nur für Admin)
+router.delete('/api/rapporte/:id', requireAdmin, async (req, res) => {
+    try {
+        const result = await pool.query('DELETE FROM rapporte WHERE id = ?', [req.params.id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Rapport nicht gefunden' });
+        }
+        
+        res.json({ success: true, message: 'Rapport erfolgreich gelöscht' });
+    } catch (error) {
+        console.error('Error deleting rapport:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET: Templates für Teilprojekte abrufen
+router.get('/api/templates/:teilprojekt', async (req, res) => {
+    try {
+        const { teilprojekt } = req.params;
+        
+        // Template-Grunddaten
+        const [template] = await pool.query(
+            'SELECT * FROM teilprojekt_templates WHERE teilprojekt = ? AND aktiv = 1',
+            [teilprojekt]
+        );
+        
+        if (!template.length) {
+            return res.status(404).json({ error: 'Template nicht gefunden' });
+        }
+
+        // Standard-Maßnahmen
+        const massnahmen = await pool.query(
+            'SELECT * FROM template_massnahmen WHERE teilprojekt = ? AND aktiv = 1 ORDER BY sortierung',
+            [teilprojekt]
+        );
+
+        // Standard-KPIs
+        const kpis = await pool.query(
+            'SELECT * FROM template_kpis WHERE teilprojekt = ? AND aktiv = 1 ORDER BY sortierung',
+            [teilprojekt]
+        );
+
+        res.json({
+            ...template[0],
+            massnahmen,
+            kpis
+        });
+    } catch (error) {
+        console.error('Error fetching template:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Middleware für Admin-Prüfung
+function requireAdmin(req, res, next) {
+    if (!req.user || (req.user.rolle !== 'admin' && req.user.rolle !== 'super_admin')) {
+        return res.status(403).json({ error: 'Keine Berechtigung - Admin-Zugang erforderlich' });
+    }
+    next();
+}
+
+    return router;
+};

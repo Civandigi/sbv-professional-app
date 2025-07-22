@@ -144,7 +144,7 @@ function getPageContent(page) {
         'dokumente': '<iframe src="pages/dokumente.html" style="width: 100%; height: calc(100vh - 200px); border: none; border-radius: 12px; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Dokumente - Retool Integration"></iframe>',
         'benutzerverwaltung': getBenutzerverwaltungContent(),
         'systemlogs': getSystemLogsContent(),
-        'einstellungen': '<iframe src="pages/einstellungen.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV User-Verwaltung & Einstellungen"></iframe>'
+        'einstellungen': getSmartEinstellungenContent()
     };
     
     return contents[page] || '<div class="text-center py-12"><p class="text-gray-500">Seite nicht gefunden</p></div>';
@@ -153,6 +153,34 @@ function getPageContent(page) {
 function getDashboardContent() {
     // Return empty string - Dashboard content is already in dashboard.html
     return '';
+}
+
+// Smart Einstellungen - lädt die richtige Seite basierend auf Benutzerrolle
+function getSmartEinstellungenContent() {
+    // Prüfe Benutzerrolle aus Session Storage
+    const storedUser = sessionStorage.getItem('sbv_benutzer');
+    let userRole = 'user';
+    
+    if (storedUser) {
+        try {
+            const userInfo = JSON.parse(storedUser);
+            userRole = userInfo.rolle || userInfo.role || 'user';
+        } catch (e) {
+            console.error('Fehler beim Parsen der Benutzerinformationen:', e);
+        }
+    }
+    
+    console.log('Smart Navigation: Benutzerrolle erkannt:', userRole);
+    
+    // Für Super-Admins und Admins: Lade die vollständige Admin-Zentrale
+    if (userRole === 'super_admin' || userRole === 'admin') {
+        console.log('Lade Admin-Zentrale für:', userRole);
+        return '<iframe src="pages/admin-einstellungen.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Admin-Zentrale"></iframe>';
+    }
+    
+    // Für normale Benutzer: Lade die Standard-Einstellungsseite
+    console.log('Lade Standard-Einstellungen für:', userRole);
+    return '<iframe src="pages/einstellungen.html" style="width: 100%; height: 100vh; border: none; opacity: 0; transition: opacity 0.3s;" onload="this.style.opacity=1" title="SBV Einstellungen"></iframe>';
 }
 
 function getEinstellungenContent() {
@@ -242,7 +270,7 @@ function getBenutzerverwaltungContent() {
     return `
         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-[var(--color-text-primary)]">
+                <h2 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 2rem;">
                     <svg class="inline w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                         <circle cx="18" cy="8" r="2"/>
@@ -327,7 +355,7 @@ function getSystemLogsContent() {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
             <div class="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">System Logs</h2>
+                    <h2 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 2rem;">System-Logs</h2>
                     <p class="text-gray-600">Systemaktivitäten und Datenbankverbindungen - Super Admin Zugriff</p>
                 </div>
                 <div class="flex items-center gap-4">
@@ -499,7 +527,7 @@ function getArchivContent() {
     return `
         <div class="container mx-auto px-6 py-8">
             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-bold text-gray-900">Archiv</h1>
+                <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 2rem;">Archiv</h1>
                 <button onclick="showUploadModal()" class="bg-[var(--color-green)] hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -858,13 +886,13 @@ function checkTokenExpiry() {
             if (payload.exp * 1000 < Date.now()) {
                 console.log('Token abgelaufen - Automatischer Logout');
                 sessionStorage.removeItem('sbv_token');
-                sessionStorage.removeItem('sbv_user');
+                sessionStorage.removeItem('sbv_benutzer');
                 window.location.href = '/login.html';
             }
         } catch (e) {
             console.error('Token-Prüfung fehlgeschlagen:', e);
             sessionStorage.removeItem('sbv_token');
-            sessionStorage.removeItem('sbv_user');
+            sessionStorage.removeItem('sbv_benutzer');
             window.location.href = '/login.html';
         }
     }

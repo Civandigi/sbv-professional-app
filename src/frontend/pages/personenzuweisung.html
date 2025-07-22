@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SBV Personenzuweisung</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        :root {
+            --color-black: #000000;
+            --color-light-blue: #A4D2F4;
+            --color-green: #6BAF38;
+            --color-background: #F8FAFC;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
+            --color-orange: #F59E0B;
+            --color-yellow: #FCD34D;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--color-background);
+        }
+        .role-badge-super {
+            background-color: var(--color-red);
+            color: white;
+        }
+        .role-badge-admin {
+            background-color: var(--color-green);
+            color: white;
+        }
+        .role-badge-nutzer {
+            background-color: var(--color-light-blue);
+            color: var(--color-black);
+        }
+        .status-active {
+            background-color: var(--color-green);
+        }
+        .status-inactive {
+            background-color: var(--color-text-secondary);
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 2rem;">Personenzuweisung</h1>
+                <p class="text-lg" style="color: var(--color-text-secondary);">Verwalten Sie Benutzer und weisen Sie Rollen und Projekte zu.</p>
+            </div>
+            <button onclick="openAddUserModal()" class="flex items-center gap-2 rounded-lg px-6 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);">
+                <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20">
+                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                </svg>
+                <span>Neuen Benutzer hinzufügen</span>
+            </button>
+        </div>
+
+        <!-- Users Management Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <!-- Benutzerliste links -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[400px] flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold" style="color: var(--color-text-primary);">Benutzer-Liste</h2>
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <input type="text" 
+                                       placeholder="Benutzer suchen..." 
+                                       class="pl-10 pr-4 py-2 border rounded-lg" 
+                                       style="border-color: var(--color-border);"
+                                       id="search-users">
+                                <svg class="w-4 h-4 absolute left-3 top-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 6.5 14a6.5 6.5 0 0 0 7.93-1.93l.27.28v.79l4.25 4.25a1 1 0 0 0 1.41-1.41L15.5 14zm-6 0a4.5 4.5 0 1 1 4.5-4.5A4.5 4.5 0 0 1 9.5 14z"/>
+                                </svg>
+                            </div>
+                            <select class="px-3 py-2 border rounded-lg" style="border-color: var(--color-border);" id="filter-role">
+                                <option value="">Alle Rollen</option>
+                                <option value="super_admin">Super Admin</option>
+                                <option value="admin">Admin</option>
+                                <option value="nutzer">Nutzer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b" style="border-color: var(--color-border);">
+                                    <th class="text-left py-3 px-2 font-semibold" style="color: var(--color-text-primary);">Benutzer</th>
+                                    <th class="text-left py-3 px-2 font-semibold" style="color: var(--color-text-primary);">Rolle</th>
+                                    <th class="text-left py-3 px-2 font-semibold" style="color: var(--color-text-primary);">Status</th>
+                                    <th class="text-left py-3 px-2 font-semibold" style="color: var(--color-text-primary);">Letzter Login</th>
+                                    <th class="text-center py-3 px-2 font-semibold" style="color: var(--color-text-primary);">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Wird dynamisch gefüllt -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Statistiken und Aktivitäten rechts -->
+            <div class="flex flex-col gap-8">
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[180px] flex flex-col justify-between">
+                    <h3 class="text-xl font-bold mb-4" style="color: var(--color-text-primary);">Übersicht</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium" style="color: var(--color-text-secondary);">Super Admins</span>
+                            <span class="text-lg font-bold role-badge-super px-2 py-1 rounded text-xs" id="count-super">0</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium" style="color: var(--color-text-secondary);">Administratoren</span>
+                            <span class="text-lg font-bold role-badge-admin px-2 py-1 rounded text-xs" id="count-admin">0</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium" style="color: var(--color-text-secondary);">Nutzer</span>
+                            <span class="text-lg font-bold role-badge-nutzer px-2 py-1 rounded text-xs" id="count-nutzer">0</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t" style="border-color: var(--color-border);">
+                            <span class="text-sm font-medium" style="color: var(--color-text-secondary);">Aktive Benutzer</span>
+                            <span class="text-lg font-bold" style="color: var(--color-green);" id="count-active">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[180px] flex flex-col justify-between">
+                    <h3 class="text-xl font-bold mb-4" style="color: var(--color-text-primary);">Letzte Aktivitäten</h3>
+                    <div class="space-y-3" id="recent-activities">
+                        <div class="text-sm text-center" style="color: var(--color-text-secondary);">
+                            Lade Aktivitäten...
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[180px] flex flex-col justify-between">
+                    <h3 class="text-xl font-bold mb-4" style="color: var(--color-text-primary);">Rollenberechtigung</h3>
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="role-badge-super px-2 py-1 rounded text-xs font-bold">SUPER ADMIN</span>
+                            </div>
+                            <ul class="text-xs space-y-1 ml-4" style="color: var(--color-text-secondary);">
+                                <li>• Vollzugriff auf alle Funktionen</li>
+                                <li>• System-Logs & Einstellungen</li>
+                                <li>• Personenzuweisung</li>
+                                <li>• Datenbankverbindung</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="role-badge-admin px-2 py-1 rounded text-xs font-bold">ADMIN</span>
+                            </div>
+                            <ul class="text-xs space-y-1 ml-4" style="color: var(--color-text-secondary);">
+                                <li>• Gesuche & Berichte verwalten</li>
+                                <li>• Benutzer hinzufügen/bearbeiten</li>
+                                <li>• Dokumente hochladen</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="role-badge-nutzer px-2 py-1 rounded text-xs font-bold">NUTZER</span>
+                            </div>
+                            <ul class="text-xs space-y-1 ml-4" style="color: var(--color-text-secondary);">
+                                <li>• Gesuche anzeigen</li>
+                                <li>• Berichte einsehen</li>
+                                <li>• Eigenes Profil bearbeiten</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Adding/Editing Users -->
+        <div id="user-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-2xl p-8 w-full max-w-md mx-4">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="modal-title" class="text-2xl font-bold" style="color: var(--color-text-primary);">Neuen Benutzer hinzufügen</h3>
+                    <button onclick="closeUserModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="user-form" class="space-y-4">
+                    <input type="hidden" id="user-id" name="id">
+                    
+                    <div>
+                        <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Name</label>
+                        <input type="text" id="user-name-input" name="name" required 
+                               class="w-full rounded-lg border py-3 px-4" 
+                               style="border-color: var(--color-border);" 
+                               placeholder="Vollständiger Name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">E-Mail</label>
+                        <input type="email" id="user-email" name="email" required 
+                               class="w-full rounded-lg border py-3 px-4" 
+                               style="border-color: var(--color-border);" 
+                               placeholder="benutzer@sbv.ch">
+                    </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Rolle</label>
+                    <select id="user-role" name="rolle" required 
+                            class="w-full rounded-lg border py-3 px-4" 
+                            style="border-color: var(--color-border);">
+                        <option value="">Rolle auswählen</option>
+                        <option value="nutzer">Nutzer</option>
+                        <option value="admin">Administrator</option>
+                        <option value="super_admin">Super Administrator</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Status</label>
+                    <select id="user-status" name="status" 
+                            class="w-full rounded-lg border py-3 px-4" 
+                            style="border-color: var(--color-border);">
+                        <option value="aktiv">Aktiv</option>
+                        <option value="inaktiv">Inaktiv</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 rounded-lg px-6 py-3 text-white font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);">
+                        Speichern
+                    </button>
+                    <button type="button" onclick="closeUserModal()" class="flex-1 rounded-lg px-6 py-3 text-gray-600 font-bold border hover:bg-gray-50 transition-colors">
+                        Abbrechen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let users = [];
+        let filteredUsers = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SBV Personenzuweisung System geladen');
+            loadUsers();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const searchInput = document.getElementById('search-users');
+            const roleFilter = document.getElementById('filter-role');
+            
+            searchInput.addEventListener('input', filterUsers);
+            roleFilter.addEventListener('change', filterUsers);
+            
+            // Form submission
+            document.getElementById('user-form').addEventListener('submit', handleUserSubmit);
+        }
+
+        // Load users from server
+        async function loadUsers() {
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                const response = await fetch('/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    users = data.data;
+                    filteredUsers = [...users];
+                    displayUsers();
+                    updateStatistics();
+                    loadRecentActivities();
+                } else {
+                    throw new Error(data.error || 'Fehler beim Laden der Benutzer');
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzer:', error);
+                
+                // Fallback mit Demo-Daten
+                users = [
+                    {
+                        id: 1,
+                        name: 'Super Admin',
+                        email: 'super@sbv.ch',
+                        rolle: 'super_admin',
+                        status: 'aktiv',
+                        letzter_login: '2025-07-21 10:30:00',
+                        erstellt_am: '2025-01-01'
+                    },
+                    {
+                        id: 2,
+                        name: 'Max Mustermann',
+                        email: 'max@sbv.ch',
+                        rolle: 'admin',
+                        status: 'aktiv',
+                        letzter_login: '2025-07-20 15:45:00',
+                        erstellt_am: '2025-02-15'
+                    },
+                    {
+                        id: 3,
+                        name: 'Anna Schmidt',
+                        email: 'anna@sbv.ch',
+                        rolle: 'nutzer',
+                        status: 'aktiv',
+                        letzter_login: '2025-07-19 09:15:00',
+                        erstellt_am: '2025-03-10'
+                    }
+                ];
+                
+                filteredUsers = [...users];
+                displayUsers();
+                updateStatistics();
+                loadRecentActivities();
+            }
+        }
+
+        // Display users in table
+        function displayUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            
+            filteredUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.style.borderColor = 'var(--color-border)';
+                
+                const roleBadgeClass = {
+                    'super_admin': 'role-badge-super',
+                    'admin': 'role-badge-admin', 
+                    'nutzer': 'role-badge-nutzer'
+                }[user.rolle] || 'role-badge-nutzer';
+                
+                const roleDisplayName = {
+                    'super_admin': 'Super Admin',
+                    'admin': 'Administrator',
+                    'nutzer': 'Nutzer'
+                }[user.rolle] || 'Nutzer';
+                
+                const statusBadgeClass = user.status === 'aktiv' ? 'status-active' : 'status-inactive';
+                const lastLogin = user.letzter_login ? new Date(user.letzter_login).toLocaleString('de-DE') : 'Nie';
+                
+                row.innerHTML = `
+                    <td class="py-4 px-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--color-light-blue);">
+                                <span class="font-bold text-sm" style="color: var(--color-black);">${user.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold" style="color: var(--color-text-primary);">${user.name}</p>
+                                <p class="text-xs" style="color: var(--color-text-secondary);">${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-2">
+                        <span class="${roleBadgeClass} px-2 py-1 rounded text-xs font-bold">${roleDisplayName}</span>
+                    </td>
+                    <td class="py-4 px-2">
+                        <span class="${statusBadgeClass} text-white px-2 py-1 rounded text-xs font-bold">${user.status}</span>
+                    </td>
+                    <td class="py-4 px-2">
+                        <span class="text-sm" style="color: var(--color-text-secondary);">${lastLogin}</span>
+                    </td>
+                    <td class="py-4 px-2 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-800 p-1" title="Bearbeiten">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                            </button>
+                            <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-800 p-1" title="Löschen">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Filter users
+        function filterUsers() {
+            const searchTerm = document.getElementById('search-users').value.toLowerCase();
+            const roleFilter = document.getElementById('filter-role').value;
+            
+            filteredUsers = users.filter(user => {
+                const matchesSearch = user.name.toLowerCase().includes(searchTerm) || 
+                                    user.email.toLowerCase().includes(searchTerm);
+                const matchesRole = !roleFilter || user.rolle === roleFilter;
+                
+                return matchesSearch && matchesRole;
+            });
+            
+            displayUsers();
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const counts = {
+                super_admin: users.filter(u => u.rolle === 'super_admin').length,
+                admin: users.filter(u => u.rolle === 'admin').length,
+                nutzer: users.filter(u => u.rolle === 'nutzer').length,
+                active: users.filter(u => u.status === 'aktiv').length
+            };
+            
+            document.getElementById('count-super').textContent = counts.super_admin;
+            document.getElementById('count-admin').textContent = counts.admin;
+            document.getElementById('count-nutzer').textContent = counts.nutzer;
+            document.getElementById('count-active').textContent = counts.active;
+        }
+
+        // Load recent activities
+        async function loadRecentActivities() {
+            const activitiesContainer = document.getElementById('recent-activities');
+            
+            // Demo activities
+            const activities = [
+                { user: 'Max Mustermann', action: 'hat sich angemeldet', time: '10:30' },
+                { user: 'Anna Schmidt', action: 'Rapport erstellt', time: '09:15' },
+                { user: 'Super Admin', action: 'Benutzer hinzugefügt', time: '08:45' }
+            ];
+            
+            activitiesContainer.innerHTML = activities.map(activity => `
+                <div class="flex items-center justify-between text-sm">
+                    <div>
+                        <span class="font-medium" style="color: var(--color-text-primary);">${activity.user}</span>
+                        <span style="color: var(--color-text-secondary);"> ${activity.action}</span>
+                    </div>
+                    <span style="color: var(--color-text-secondary);">${activity.time}</span>
+                </div>
+            `).join('');
+        }
+
+        // Modal functions
+        function openAddUserModal() {
+            document.getElementById('modal-title').textContent = 'Neuen Benutzer hinzufügen';
+            document.getElementById('user-form').reset();
+            document.getElementById('user-id').value = '';
+            document.getElementById('user-modal').classList.remove('hidden');
+            document.getElementById('user-modal').classList.add('flex');
+        }
+
+        function editUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('modal-title').textContent = 'Benutzer bearbeiten';
+            document.getElementById('user-id').value = user.id;
+            document.getElementById('user-name-input').value = user.name;
+            document.getElementById('user-email').value = user.email;
+            document.getElementById('user-role').value = user.rolle;
+            document.getElementById('user-status').value = user.status;
+            
+            document.getElementById('user-modal').classList.remove('hidden');
+            document.getElementById('user-modal').classList.add('flex');
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').classList.add('hidden');
+            document.getElementById('user-modal').classList.remove('flex');
+        }
+
+        // Handle form submission
+        async function handleUserSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = Object.fromEntries(formData);
+            
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                const isEdit = userData.id && userData.id !== '';
+                const url = isEdit ? `/api/users/${userData.id}` : '/api/users';
+                const method = isEdit ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeUserModal();
+                    loadUsers(); // Reload users
+                    alert(isEdit ? 'Benutzer erfolgreich aktualisiert!' : 'Benutzer erfolgreich hinzugefügt!');
+                } else {
+                    throw new Error(result.error || 'Fehler beim Speichern');
+                }
+            } catch (error) {
+                console.error('Fehler beim Speichern:', error);
+                alert('Fehler beim Speichern: ' + error.message);
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            if (confirm(`Möchten Sie den Benutzer "${user.name}" wirklich löschen?`)) {
+                try {
+                    const token = sessionStorage.getItem('sbv_token');
+                    const response = await fetch(`/api/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        loadUsers(); // Reload users
+                        alert('Benutzer erfolgreich gelöscht!');
+                    } else {
+                        throw new Error(result.error || 'Fehler beim Löschen');
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Löschen:', error);
+                    alert('Fehler beim Löschen: ' + error.message);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
