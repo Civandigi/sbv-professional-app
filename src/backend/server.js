@@ -214,7 +214,7 @@ app.get('/api', (req, res) => {
             gesuche: {
                 'GET /api/gesuche': 'Alle Gesuche abrufen',
                 'POST /api/gesuche': 'Neues Gesuch erstellen',
-                'POST /api/gesuche/upload': 'PDF-Upload (Super Admin)'
+                'POST /api/gesuche/upload': 'PDF-Upload (Admin/Super Admin)'
             },
             berichte: {
                 'GET /api/berichte': 'Alle Berichte abrufen',
@@ -1072,15 +1072,11 @@ app.put('/api/berichte/:id', authenticateToken, async (req, res) => {
             });
         }
         
-        // Admin: kann bearbeiten, aber nicht Status auf "genehmigt" setzen
-        if (userRole === 'admin' && status === 'genehmigt') {
-            return res.status(403).json({
-                success: false,
-                message: 'Keine Berechtigung - Admins können Rapporte nicht genehmigen'
-            });
-        }
+        // Admin kann jetzt auch genehmigen - nur Systemeinstellungen bleiben Super Admin vorbehalten
+        // Beide Rollen können Rapporte vollständig verwalten
         
         // Super Admin: kann alles
+        // Admin: kann jetzt auch Rapporte genehmigen
         // (keine weitere Überprüfung nötig)
         
         // Update Bericht
@@ -1645,11 +1641,11 @@ app.post('/api/gesuche/upload-intelligent', authenticateToken, upload.fields([
 // Upload Gesuch with automatic Rapport generation
 app.post('/api/gesuche/upload', authenticateToken, upload.single('gesuch'), async (req, res) => {
     try {
-        // Nur Super Admin darf Gesuche hochladen
-        if (req.user.rolle !== 'super_admin') {
+        // Admin und Super Admin dürfen Gesuche hochladen
+        if (!['admin', 'super_admin'].includes(req.user.rolle)) {
             return res.status(403).json({ 
                 success: false,
-                message: 'Keine Berechtigung - Nur Super Admins können Gesuche hochladen' 
+                message: 'Keine Berechtigung - Nur Admins können Gesuche hochladen' 
             });
         }
 
