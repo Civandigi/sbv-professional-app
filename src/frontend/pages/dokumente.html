@@ -8,24 +8,28 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         :root {
+            --color-primary: #A4D2F4;
+            --color-secondary: #6BAF38;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-success: #10b981;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-bg-primary: #ffffff;
+            --color-bg-secondary: #f3f4f6;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
             --color-black: #000000;
             --color-light-blue: #A4D2F4;
             --color-green: #6BAF38;
             --color-background: #F8FAFC;
-            --color-text-primary: #111827;
-            --color-text-secondary: #6B7280;
-            --color-card-background: #FFFFFF;
         }
     </style>
 </head>
-<body class="bg-[var(--color-background)] p-6">
-    <div>
-        <h1 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-            <svg class="inline w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
-            </svg>
-            Dokumente verwalten
-        </h1>
+<body class="bg-[var(--color-background)]">
+    <div class="p-8">
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)] mb-8">Dokumente verwalten</h1>
         
         <!-- Document Upload & Search -->
         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6 mb-6">

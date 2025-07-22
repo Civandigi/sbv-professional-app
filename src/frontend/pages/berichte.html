@@ -8,24 +8,28 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         :root {
+            --color-primary: #A4D2F4;
+            --color-secondary: #6BAF38;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-success: #10b981;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-bg-primary: #ffffff;
+            --color-bg-secondary: #f3f4f6;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
             --color-black: #000000;
             --color-light-blue: #A4D2F4;
             --color-green: #6BAF38;
             --color-background: #F8FAFC;
-            --color-text-primary: #111827;
-            --color-text-secondary: #6B7280;
-            --color-card-background: #FFFFFF;
         }
     </style>
 </head>
-<body class="bg-[var(--color-background)] p-6">
-    <div>
-        <h1 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-            <svg class="inline w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-            </svg>
-            Berichte & Analysen
-        </h1>
+<body class="bg-[var(--color-background)]">
+    <div class="p-8">
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)] mb-8">Berichte & Analysen</h1>
         
         <!-- Report Generation -->
         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6 mb-6">

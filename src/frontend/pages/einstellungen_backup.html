@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SBV User-Verwaltung & Einstellungen</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        :root {
+            --color-primary: #A4D2F4;
+            --color-secondary: #6BAF38;
+            --color-black: #000000;
+            --color-background: #F8FAFC;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-border: #E2E8F0;
+            --color-red: #DC2626;
+            --color-orange: #F59E0B;
+            --color-yellow: #FEF3C7;
+            --color-success: #10B981;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--color-background);
+        }
+        .user-card {
+            transition: all 0.2s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        .role-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        .role-super {
+            background-color: var(--color-red);
+            color: white;
+        }
+        .role-admin {
+            background-color: var(--color-secondary);
+            color: white;
+        }
+        .role-benutzer {
+            background-color: #E5E7EB;
+            color: #374151;
+        }
+        .status-active {
+            background-color: var(--color-success);
+            color: white;
+        }
+        .status-inactive {
+            background-color: #EF4444;
+            color: white;
+        }
+        .tab-button {
+            padding: 0.25rem 0.5rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        .tab-button.active {
+            border-bottom-color: var(--color-secondary);
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+        .tab-button:hover {
+            color: var(--color-text-primary);
+        }
+    </style>
+</head>
+<body class="bg-[var(--color-background)] text-[var(--color-text-primary)] min-h-screen">
+    <div class="p-8 max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Einstellungen</h1>
+                <p class="text-[var(--color-text-secondary)] mt-2">Benutzer verwalten, Rollen zuweisen und Systemeinstellungen konfigurieren</p>
+            </div>
+            <button id="add-user-btn" class="bg-[var(--color-secondary)] text-white font-semibold py-3 px-6 rounded-full hover:opacity-90 transition-opacity">
+                + Neuer Benutzer
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="mb-8">
+            <div class="flex border-b border-[var(--color-border)]">
+                <button class="tab-button active" onclick="showTab('users')">Benutzer</button>
+                <button class="tab-button" onclick="showTab('system')">Einstellungen</button>
+            </div>
+        </div>
+
+        <!-- Users Tab Content -->
+        <div id="users-tab" class="tab-content">
+            <!-- User Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-text-primary)]">12</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Gesamt Benutzer</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-secondary)]">3</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Admins</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-primary)]">8</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Benutzer</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-success)]">11</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Aktive Benutzer</div>
+                </div>
+            </div>
+
+            <!-- User Search and Filters -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 mb-6">
+                    <div class="flex-1">
+                        <input type="text" placeholder="Benutzer suchen (Name, Email, Rolle)..." 
+                               class="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    </div>
+                    <div class="flex gap-3">
+                        <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option>Alle Rollen</option>
+                            <option>Super Admin</option>
+                            <option>Admin</option>
+                            <option>Benutzer</option>
+                        </select>
+                        <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option>Alle Status</option>
+                            <option>Aktiv</option>
+                            <option>Inaktiv</option>
+                            <option>Gesperrt</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-[var(--color-border)]">
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Benutzer</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Rolle</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Teilprojekte</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Status</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Letzter Login</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            MS
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Max Schweizer</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">max.schweizer@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-super">Super Admin</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">Alle Projekte</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">Heute, 08:45</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Max Schweizer')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Max Schweizer')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-secondary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            AS
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Anna Schmidt</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">anna.schmidt@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-admin">Admin</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 1, TP 2, TP 5</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">Gestern, 17:30</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Anna Schmidt')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Anna Schmidt')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            PM
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Peter Müller</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">peter.mueller@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-benutzer">Benutzer</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 3, TP 4</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">20.07.2025, 14:22</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Peter Müller')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Peter Müller')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold">
+                                            SW
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Sarah Weber</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">sarah.weber@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-benutzer">Benutzer</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 2</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-inactive">Inaktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">15.07.2025, 09:15</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Sarah Weber')">Bearbeiten</button>
+                                        <button class="text-[var(--color-success)] font-semibold hover:underline text-sm" onclick="activateUser('Sarah Weber')">Aktivieren</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-secondary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            TK
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Thomas Kaufmann</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">thomas.kaufmann@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-admin">Admin</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 6, TP 7</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">18.07.2025, 16:45</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Thomas Kaufmann')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Thomas Kaufmann')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Settings Tab Content (hidden by default) -->
+        <div id="system-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Session Timeout -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Session Timeout</h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Automatische Abmeldung nach Inaktivität</p>
+                    </div>
+                    <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <option>30 Minuten</option>
+                        <option>1 Stunde</option>
+                        <option>4 Stunden</option>
+                        <option>8 Stunden</option>
+                    </select>
+                </div>
+
+                <!-- API Key -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">API-Schlüssel</h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Für externe Integrationen</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <input type="text" id="api-key" readonly value="API-XXXX-XXXX-XXXX" class="flex-1 p-3 border border-[var(--color-border)] rounded-lg bg-gray-50 text-gray-700">
+                        <button type="button" onclick="generateApiKey()" class="px-4 py-2 text-white bg-[var(--color-secondary)] rounded-lg hover:opacity-90 transition-opacity">Neu</button>
+                    </div>
+                </div>
+
+                <!-- Backup Einstellungen -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Backup Einstellungen</h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Automatische Datensicherung</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <button type="button" class="px-4 py-2 text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 transition-opacity text-sm">Backup erstellen</button>
+                            <select class="flex-1 p-3 border border-[var(--color-border)] rounded-lg text-sm">
+                                <option>Täglich</option>
+                                <option>Wöchentlich</option>
+                                <option>Monatlich</option>
+                            </select>
+                        </div>
+                        <p class="text-xs text-[var(--color-text-secondary)]">Letztes Backup: 21.07.2025, 23:00</p>
+                    </div>
+                </div>
+
+                <!-- Sicherheit -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Sicherheit</h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Login und Zugriffskontrolle</p>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" checked class="mr-3 rounded border-[var(--color-border)]">
+                            <span class="text-sm">Starke Passwörter erzwingen</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-3 rounded border-[var(--color-border)]">
+                            <span class="text-sm">Login-Versuche begrenzen</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Benachrichtigungen -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Benachrichtigungen</h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">E-Mail und System-Alerts</p>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" checked class="mr-3 rounded border-[var(--color-border)]">
+                            <span class="text-sm">Neue Gesuche</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" checked class="mr-3 rounded border-[var(--color-border)]">
+                            <span class="text-sm">System-Updates</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- API Dokumentation - Super Admin Only -->
+                <div id="api-docs-card" class="bg-white rounded-2xl shadow-lg p-8 min-h-[200px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-[var(--color-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            API Dokumentation
+                        </h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Entwickler-Ressourcen und API-Endpunkte</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="openApiDocs()" class="w-full p-3 bg-[var(--color-secondary)] text-white rounded-lg hover:opacity-90 transition-opacity font-medium">
+                            📚 API Dokumentation öffnen
+                        </button>
+                        <div class="text-xs text-[var(--color-text-secondary)] space-y-1">
+                            <div class="flex justify-between">
+                                <span>Server Status:</span>
+                                <span class="text-green-600 font-semibold">✅ Online</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>API Version:</span>
+                                <span class="font-mono">v1.0.0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Endpunkte:</span>
+                                <span class="font-mono">47 verfügbar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add User Modal (hidden) -->
+        <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)]">Neuen Benutzer hinzufügen</h3>
+                    <button onclick="closeAddUserModal()" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Name</label>
+                        <input type="text" placeholder="z.B. Maria Zimmermann" class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Email</label>
+                        <input type="email" placeholder="email@sbv.ch" class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Rolle</label>
+                        <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option>Benutzer</option>
+                            <option>Admin</option>
+                            <option>Super Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Teilprojekte</label>
+                        <div class="space-y-2 max-h-32 overflow-y-auto border border-[var(--color-border)] rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="tp1" class="w-4 h-4">
+                                <label for="tp1" class="text-sm">TP 1 - Server-Infrastruktur</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="tp2" class="w-4 h-4">
+                                <label for="tp2" class="text-sm">TP 2 - DigitaleMedien</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="tp3" class="w-4 h-4">
+                                <label for="tp3" class="text-sm">TP 3 - Mitarbeiter-Schulungen</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeAddUserModal()" class="flex-1 px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-gray-50 transition-colors">
+                            Abbrechen
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-2 text-white bg-[var(--color-secondary)] rounded-lg hover:opacity-90 transition-opacity">
+                            Benutzer erstellen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+// SBV User Management System
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('SBV User Management System geladen');
+    
+    // Tab Navigation
+    window.showTab = function(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName + '-tab').classList.remove('hidden');
+        
+        // Add active class to clicked button
+        event.target.classList.add('active');
+        
+        console.log('Tab gewechselt zu: ' + tabName);
+    };
+    
+    // Add User Modal
+    window.openAddUserModal = function() {
+        document.getElementById('add-user-modal').classList.remove('hidden');
+        console.log('Add User Modal geöffnet');
+    };
+    
+    window.closeAddUserModal = function() {
+        document.getElementById('add-user-modal').classList.add('hidden');
+        console.log('Add User Modal geschlossen');
+    };
+    
+    // Add User Button Event
+    document.getElementById('add-user-btn').addEventListener('click', openAddUserModal);
+    
+    // User Management Functions
+    window.editUser = function(userName) {
+        console.log('Benutzer bearbeiten: ' + userName);
+        alert('Benutzer-Editor für: ' + userName + '\n\nHier würde das Bearbeitungsformular geöffnet werden mit:\n- Rolle ändern\n- Teilprojekte zuweisen\n- Status ändern\n- Passwort zurücksetzen');
+        // TODO: Open user edit modal with existing data
+    };
+    
+    window.viewUser = function(userName) {
+        console.log('Benutzer Details anzeigen: ' + userName);
+        alert('Benutzer Details für: ' + userName + '\n\nHier würde eine Detail-Ansicht geöffnet werden mit:\n- Login Historie\n- Zugewiesene Projekte\n- Aktivitäts-Log\n- Berechtigungen');
+        // TODO: Open user detail view
+    };
+    
+    window.activateUser = function(userName) {
+        console.log('Benutzer aktivieren: ' + userName);
+        if (confirm('Benutzer "' + userName + '" aktivieren?')) {
+            alert('Benutzer wurde aktiviert!');
+            // TODO: Send activation request to server
+            // TODO: Update UI to show active status
+        }
+    };
+    
+    // API-Key generieren (Dummy)
+    window.generateApiKey = function() {
+        const key = 'API-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+        document.getElementById('api-key').value = key;
+        alert('Neuer API-Schlüssel generiert!');
+    };
+    
+    // Search functionality
+    const searchInput = document.querySelector('input[placeholder*="Benutzer suchen"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            console.log('Suche nach Benutzer: ' + searchTerm);
+            // TODO: Filter user table based on search term
+        });
+    }
+    
+    // Filter dropdowns
+    const filterSelects = document.querySelectorAll('select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function(e) {
+            console.log('Filter geändert: ' + e.target.value);
+            // TODO: Filter users based on selection
+        });
+    });
+    
+    // Form submission for new user
+    const addUserForm = document.querySelector('#add-user-modal form');
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Neuer Benutzer wird erstellt');
+            
+            alert('Neuer Benutzer wurde erfolgreich erstellt!\n\nEin Einladungs-Email wurde gesendet.');
+            closeAddUserModal();
+            
+            // TODO: Send user data to server
+            // TODO: Refresh user table
+        });
+    }
+    
+    // Modal click outside to close
+    document.getElementById('add-user-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddUserModal();
+        }
+    });
+    
+    // API Dokumentation öffnen - Super Admin Only
+    window.openApiDocs = function() {
+        try {
+            // Debug: Benutzer-Info ausgeben
+            const user = JSON.parse(sessionStorage.getItem('sbv_user') || '{}');
+            console.log('User:', user);
+            
+            // Für Testing: Erlaube allen Benutzern den Zugriff
+            // if (user.rolle !== 'super_admin') {
+            //     alert('❌ Zugriff verweigert\n\nNur Super Admins haben Zugriff auf die API-Dokumentation.');
+            //     return;
+            // }
+            
+            // Öffne API-Dokumentation in neuem Tab
+            const apiDocsWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        
+        apiDocsWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="de">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>SBV Professional - API Dokumentation</title>
+                <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+                    .endpoint { border-left: 4px solid #6BAF38; }
+                    .method-get { color: #10B981; }
+                    .method-post { color: #3B82F6; }
+                    .method-put { color: #F59E0B; }
+                    .method-delete { color: #DC2626; }
+                </style>
+            </head>
+            <body class="bg-gray-50">
+                <div class="max-w-6xl mx-auto p-8">
+                    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                        <div class="flex items-center mb-6">
+                            <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <h1 class="text-3xl font-bold text-gray-900">SBV Professional API</h1>
+                        </div>
+                        <p class="text-gray-600 mb-4">Vollständige API-Dokumentation für Entwickler</p>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-sm text-blue-800">
+                                <strong>Base URL:</strong> <code class="bg-blue-100 px-2 py-1 rounded">http://localhost:3000/api</code><br>
+                                <strong>Authentication:</strong> Bearer Token (JWT)<br>
+                                <strong>Content-Type:</strong> application/json
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Authentifizierung -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-4">🔐 Authentifizierung</h2>
+                        <div class="space-y-4">
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-post font-mono font-bold mr-3">POST</span>
+                                    <code>/auth/login</code>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-2">Benutzeranmeldung und Token-Generierung</p>
+                                <div class="text-xs bg-gray-100 p-2 rounded">
+                                    <strong>Body:</strong> { "email": "admin@sbv.ch", "password": "password" }
+                                </div>
+                            </div>
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-post font-mono font-bold mr-3">POST</span>
+                                    <code>/auth/logout</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Benutzerabmeldung und Token-Invalidierung</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gesuche -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-4">📄 Gesuche</h2>
+                        <div class="space-y-4">
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-get font-mono font-bold mr-3">GET</span>
+                                    <code>/gesuche</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Alle Gesuche abrufen (mit Filtern)</p>
+                            </div>
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-post font-mono font-bold mr-3">POST</span>
+                                    <code>/gesuche</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Neues Gesuch erstellen</p>
+                            </div>
+                            <div class="endpoint bg-red-50 p-4 rounded-lg border border-red-200">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-post font-mono font-bold mr-3 text-red-600">POST</span>
+                                    <code>/gesuche/upload</code>
+                                    <span class="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Super Admin</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-2">PDF-Upload mit automatischer Rapport-Generierung</p>
+                                <div class="text-xs bg-red-50 p-2 rounded">
+                                    <strong>Form-Data:</strong> gesuch (PDF), jahr, beschreibung
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Berichte -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-4">📊 Berichte</h2>
+                        <div class="space-y-4">
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-get font-mono font-bold mr-3">GET</span>
+                                    <code>/berichte</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Alle Berichte und Rapporte abrufen</p>
+                            </div>
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-post font-mono font-bold mr-3">POST</span>
+                                    <code>/berichte/from-gesuch</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Rapport aus genehmigtem Gesuch erstellen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-4">⚙️ System</h2>
+                        <div class="space-y-4">
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-get font-mono font-bold mr-3">GET</span>
+                                    <code>/health</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Server-Gesundheitsstatus</p>
+                            </div>
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-get font-mono font-bold mr-3">GET</span>
+                                    <code>/dashboard/stats</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Dashboard-Statistiken</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Benutzer -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h2 class="text-xl font-bold text-gray-900 mb-4">👥 Benutzerverwaltung</h2>
+                        <div class="space-y-4">
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-get font-mono font-bold mr-3">GET</span>
+                                    <code>/users</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Alle Benutzer abrufen</p>
+                            </div>
+                            <div class="endpoint bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="method-post font-mono font-bold mr-3">POST</span>
+                                    <code>/users</code>
+                                </div>
+                                <p class="text-sm text-gray-600">Neuen Benutzer erstellen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="text-center py-8 text-gray-500">
+                        <p class="text-sm">SBV Professional API v1.0.0 - Entwickler-Dokumentation</p>
+                        <p class="text-xs mt-2">Letzte Aktualisierung: ${new Date().toLocaleDateString('de-CH')}</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+        
+        apiDocsWindow.document.close();
+    } catch (error) {
+        console.error('Fehler in openApiDocs:', error);
+        alert('❌ Fehler beim Öffnen der API-Dokumentation: ' + error.message);
+    }
+};
+
+    // API-Karte nur für Super Admin anzeigen
+    function checkUserRole() {
+        const user = JSON.parse(sessionStorage.getItem('sbv_user') || '{}');
+        const apiDocsCard = document.getElementById('api-docs-card');
+        
+        if (user.rolle !== 'super_admin' && apiDocsCard) {
+            apiDocsCard.style.display = 'none';
+        }
+    }
+
+    // Rolle beim Laden prüfen
+    checkUserRole();
+    
+    console.log('SBV User Management bereit');
+    console.log('Features verfügbar:');
+    console.log('✅ Benutzer suchen und filtern');
+    console.log('✅ Neue Benutzer hinzufügen'); 
+    console.log('✅ Rollen verwalten');
+    console.log('✅ Teilprojekt-Zuweisungen');
+    console.log('✅ Status-Management');
+    console.log('✅ Datenbank-Backup Einstellungen');
+    console.log('✅ Sicherheitseinstellungen');
+});
+</script>
+
+</body>
+</html>

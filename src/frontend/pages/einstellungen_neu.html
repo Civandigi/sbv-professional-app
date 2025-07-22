@@ -143,19 +143,9 @@
                 <!-- API Dokumentation (nur für Super Admin) -->
                 <div id="api-docs-card" class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-lg font-semibold mb-4">API Dokumentation</h3>
-                    <p class="text-gray-600 mb-4">
-                        <strong>Application Programming Interface (API)</strong><br>
-                        Vollständige Entwickler-Dokumentation mit allen verfügbaren Endpunkten, 
-                        Authentifizierung und Code-Beispielen für externe Integrationen.
-                    </p>
-                    <div class="bg-blue-50 p-3 rounded-lg mb-4">
-                        <p class="text-sm text-blue-800">
-                            <strong>Hinweis:</strong> Die API ermöglicht es externen Systemen, 
-                            mit der SBV Professional App zu kommunizieren.
-                        </p>
-                    </div>
-                    <button onclick="openApiDocs()" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors">
-                        Vollständige API Dokumentation öffnen
+                    <p class="text-gray-600 mb-4">Entwickler-Dokumentation und Endpunkte</p>
+                    <button onclick="openApiDocs()" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900">
+                        API Dokumentation öffnen
                     </button>
                 </div>
 
@@ -268,183 +258,37 @@
 
         // API Dokumentation öffnen
         function openApiDocs() {
-            const apiWindow = window.open('', '_blank', 'width=1200,height=800');
+            const apiWindow = window.open('', '_blank', 'width=1000,height=700');
             apiWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>SBV Professional API Dokumentation</title>
+                    <title>SBV Professional API</title>
                     <style>
-                        body { 
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                            padding: 30px; 
-                            background: #f8f9fa; 
-                            line-height: 1.6;
-                        }
-                        .container {
-                            max-width: 1000px;
-                            margin: 0 auto;
-                            background: white;
-                            padding: 40px;
-                            border-radius: 12px;
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                        }
-                        h1 { 
-                            color: #2c3e50; 
-                            text-align: center;
-                            margin-bottom: 30px;
-                            font-size: 2.2em;
-                        }
-                        h2 {
-                            color: #34495e;
-                            border-bottom: 2px solid #6BAF38;
-                            padding-bottom: 10px;
-                            margin-top: 30px;
-                        }
-                        .info-box {
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            color: white;
-                            padding: 25px;
-                            border-radius: 10px;
-                            margin: 20px 0;
-                        }
-                        .endpoint { 
-                            background: #f8f9fa; 
-                            padding: 20px; 
-                            margin: 15px 0; 
-                            border-left: 5px solid #6BAF38; 
-                            border-radius: 8px;
-                            transition: transform 0.2s;
-                        }
-                        .endpoint:hover {
-                            transform: translateX(5px);
-                            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
-                        }
-                        .method { 
-                            font-weight: bold; 
-                            color: white;
-                            background: #6BAF38;
-                            padding: 5px 12px;
-                            border-radius: 20px;
-                            font-size: 0.9em;
-                            margin-right: 15px;
-                            display: inline-block;
-                        }
-                        .method.post { background: #e74c3c; }
-                        .method.get { background: #27ae60; }
-                        .method.put { background: #f39c12; }
-                        .method.delete { background: #8e44ad; }
-                        .description {
-                            color: #7f8c8d;
-                            font-style: italic;
-                            margin-top: 8px;
-                        }
-                        .params {
-                            margin-top: 10px;
-                            font-size: 0.9em;
-                            color: #555;
-                        }
-                        .security-note {
-                            background: #fff3cd;
-                            border: 1px solid #ffeaa7;
-                            color: #856404;
-                            padding: 15px;
-                            border-radius: 5px;
-                            margin: 20px 0;
-                        }
-                        .code {
-                            background: #2d3748;
-                            color: #e2e8f0;
-                            padding: 15px;
-                            border-radius: 5px;
-                            font-family: 'Courier New', monospace;
-                            margin: 10px 0;
-                            overflow-x: auto;
-                        }
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #333; }
+                        .endpoint { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+                        .method { font-weight: bold; color: #6BAF38; }
                     </style>
                 </head>
                 <body>
-                    <div class="container">
-                        <h1>SBV Professional API Dokumentation</h1>
-                        
-                        <div class="info-box">
-                            <h3>API Übersicht (Application Programming Interface)</h3>
-                            <p><strong>Base URL:</strong> http://localhost:3000/api</p>
-                            <p><strong>Authentifizierung:</strong> Bearer Token (JWT)</p>
-                            <p><strong>Content-Type:</strong> application/json</p>
-                            <p><strong>API Version:</strong> v1.0.0</p>
-                        </div>
-                        
-                        <div class="security-note">
-                            <strong>Sicherheit:</strong> Alle API-Endpunkte (außer /login) erfordern ein gültiges JWT-Token im Authorization Header.
-                        </div>
-
-                        <h2>Verfügbare Endpunkte</h2>
-                        
-                        <div class="endpoint">
-                            <span class="method post">POST</span> <strong>/api/login</strong>
-                            <div class="description">Benutzer-Authentifizierung</div>
-                            <div class="params"><strong>Parameter:</strong> { "email": "string", "password": "string" }</div>
-                            <div class="code">curl -X POST http://localhost:3000/api/login -H "Content-Type: application/json" -d '{"email":"user@example.com","password":"password"}'</div>
-                        </div>
-                        
-                        <div class="endpoint">
-                            <span class="method get">GET</span> <strong>/api/gesuche</strong>
-                            <div class="description">Alle Gesuche abrufen (authentifiziert)</div>
-                            <div class="params"><strong>Header:</strong> Authorization: Bearer [JWT-Token]</div>
-                            <div class="code">curl -X GET http://localhost:3000/api/gesuche -H "Authorization: Bearer YOUR_JWT_TOKEN"</div>
-                        </div>
-                        
-                        <div class="endpoint">
-                            <span class="method post">POST</span> <strong>/api/gesuche/upload</strong>
-                            <div class="description">PDF-Gesuch hochladen (nur Super Admin)</div>
-                            <div class="params"><strong>Content-Type:</strong> multipart/form-data</div>
-                            <div class="params"><strong>Datei-Limits:</strong> Max. 10MB, nur PDF-Format</div>
-                            <div class="code">curl -X POST http://localhost:3000/api/gesuche/upload -H "Authorization: Bearer TOKEN" -F "file=@gesuch.pdf"</div>
-                        </div>
-                        
-                        <div class="endpoint">
-                            <span class="method post">POST</span> <strong>/api/rapport</strong>
-                            <div class="description">Rapport aus Gesuch erstellen</div>
-                            <div class="params"><strong>Parameter:</strong> { "gesuchId": "number", "notizen": "string" }</div>
-                            <div class="code">curl -X POST http://localhost:3000/api/rapport -H "Authorization: Bearer TOKEN" -d '{"gesuchId":1,"notizen":"Zusätzliche Informationen"}'</div>
-                        </div>
-                        
-                        <div class="endpoint">
-                            <span class="method get">GET</span> <strong>/api/users</strong>
-                            <div class="description">Alle Benutzer abrufen (Admin/Super Admin)</div>
-                            <div class="params"><strong>Berechtigung:</strong> Admin oder Super Admin Rolle erforderlich</div>
-                            <div class="code">curl -X GET http://localhost:3000/api/users -H "Authorization: Bearer ADMIN_TOKEN"</div>
-                        </div>
-                        
-                        <div class="endpoint">
-                            <span class="method get">GET</span> <strong>/api/health</strong>
-                            <div class="description">Server-Status und Gesundheitsprüfung</div>
-                            <div class="params"><strong>Öffentlich:</strong> Keine Authentifizierung erforderlich</div>
-                            <div class="code">curl -X GET http://localhost:3000/api/health</div>
-                        </div>
-
-                        <h2>Antwort-Codes</h2>
-                        <div class="endpoint">
-                            <strong>200</strong> - Erfolgreich<br>
-                            <strong>201</strong> - Erstellt<br>
-                            <strong>400</strong> - Ungültige Anfrage<br>
-                            <strong>401</strong> - Nicht authentifiziert<br>
-                            <strong>403</strong> - Keine Berechtigung<br>
-                            <strong>404</strong> - Nicht gefunden<br>
-                            <strong>500</strong> - Server-Fehler
-                        </div>
-
-                        <div class="info-box" style="margin-top: 40px;">
-                            <h3>Was ist eine API?</h3>
-                            <p><strong>API (Application Programming Interface)</strong> ist eine Schnittstelle, die es verschiedenen Software-Anwendungen ermöglicht, miteinander zu kommunizieren.</p>
-                            <p>In unserem Fall können externe Systeme über diese API-Endpunkte mit der SBV Professional App interagieren.</p>
-                        </div>
-                        
-                        <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">
-                            <em>SBV Professional API Dokumentation - Version 1.0.0</em><br>
-                            <small>Generiert am: ${new Date().toLocaleDateString('de-DE')}</small>
-                        </p>
+                    <h1>SBV Professional API Dokumentation</h1>
+                    <p><strong>Base URL:</strong> http://localhost:3000/api</p>
+                    
+                    <div class="endpoint">
+                        <span class="method">POST</span> /api/login - Benutzer anmelden
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">GET</span> /api/gesuche - Alle Gesuche abrufen
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">POST</span> /api/gesuche/upload - PDF Gesuch hochladen
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">GET</span> /api/users - Benutzer abrufen
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">GET</span> /api/health - Server Status
                     </div>
                 </body>
                 </html>
@@ -452,37 +296,12 @@
             apiWindow.document.close();
         }
 
-        // Super Admin Check - Verbessert mit Debug-Ausgaben
+        // Super Admin Check
         function checkSuperAdmin() {
-            // Prüfe beide Storage-Typen
-            const userLocalStorage = localStorage.getItem('user');
-            const userSessionStorage = sessionStorage.getItem('user');
-            
-            console.log('Debug: localStorage user:', userLocalStorage);
-            console.log('Debug: sessionStorage user:', userSessionStorage);
-            
-            let user = {};
-            try {
-                user = JSON.parse(userLocalStorage || userSessionStorage || '{}');
-            } catch (e) {
-                console.error('Fehler beim Parsen der Benutzerdaten:', e);
-            }
-            
-            console.log('Aktuelle Benutzer-Rolle:', user.rolle);
-            
-            const apiCard = document.getElementById('api-docs-card');
-            if (apiCard) {
-                if (user.rolle === 'super_admin') {
-                    apiCard.style.display = 'block';
-                    console.log('API-Karte wird angezeigt für Super Admin');
-                } else {
-                    // TEMPORÄR FÜR PRÄSENTATION: Zeige API-Docs für alle an
-                    apiCard.style.display = 'block';
-                    console.log('TEMPORÄR: API-Karte für alle sichtbar (Präsentationsmodus)');
-                    console.log('Aktuelle Rolle:', user.rolle || 'nicht definiert');
-                }
-            } else {
-                console.error('API-Dokumentations-Karte nicht gefunden!');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.rolle !== 'super_admin') {
+                const apiCard = document.getElementById('api-docs-card');
+                if (apiCard) apiCard.style.display = 'none';
             }
         }
 

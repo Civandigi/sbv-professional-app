@@ -11,11 +11,20 @@
         :root {
             --color-primary: #A4D2F4;
             --color-secondary: #6BAF38;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-success: #10b981;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-bg-primary: #ffffff;
+            --color-bg-secondary: #f3f4f6;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
             --color-black: #000000;
+            --color-light-blue: #A4D2F4;
+            --color-green: #6BAF38;
             --color-background: #F8FAFC;
-            --color-text-primary: #1E293B;
-            --color-text-secondary: #64748B;
-            --color-border: #E2E8F0;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -34,13 +43,13 @@
     </style>
 </head>
 <body class="bg-[var(--color-background)] text-[var(--color-text-primary)]">
-<div class="flex h-screen flex-col p-8">
+<div class="flex h-screen flex-col">
     <!-- Page Title -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Gesuche</h1>
+    <div class="p-8">
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)] mb-8">Gesuche</h1>
     </div>
 
-<main class="grid flex-1 grid-cols-12 gap-6">
+<main class="grid flex-1 grid-cols-12 gap-6 px-8 pb-8">
     <!-- Sidebar - Filters & Search -->
     <aside class="col-span-3 flex flex-col gap-6 rounded-lg border border-[var(--color-border)] bg-white p-4">
         <div>

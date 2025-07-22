@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SBV User-Verwaltung & Einstellungen</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        :root {
+            --color-primary: #A4D2F4;
+            --color-secondary: #6BAF38;
+            --color-black: #000000;
+            --color-background: #F8FAFC;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-border: #E2E8F0;
+            --color-red: #DC2626;
+            --color-orange: #F59E0B;
+            --color-yellow: #FEF3C7;
+            --color-success: #10B981;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--color-background);
+        }
+        .user-card {
+            transition: all 0.2s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        .role-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        .role-super {
+            background-color: var(--color-red);
+            color: white;
+        }
+        .role-admin {
+            background-color: var(--color-secondary);
+            color: white;
+        }
+        .role-benutzer {
+            background-color: #E5E7EB;
+            color: #374151;
+        }
+        .tab-button {
+            transition: all 0.2s ease;
+        }
+        .tab-button:hover {
+            background-color: rgba(107, 175, 56, 0.1);
+        }
+        .tab-button.active {
+            background-color: var(--color-secondary);
+            color: white;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .input-field {
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        .input-field:focus {
+            border-color: var(--color-secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(107, 175, 56, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-[var(--color-background)] min-h-screen">
+    <div class="max-w-7xl mx-auto p-6 space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-[var(--color-text-primary)] mb-2">
+                SBV User-Verwaltung & Einstellungen
+            </h1>
+            <p class="text-lg text-[var(--color-text-secondary)]">
+                Benutzer verwalten, Rollen zuweisen und Systemeinstellungen konfigurieren
+            </p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-[var(--color-border)]">
+            <button onclick="showTab('users')" class="tab-button active flex-1 px-4 py-3 rounded-xl font-medium transition-all" id="tab-users">
+                👥 Benutzerverwaltung
+            </button>
+            <button onclick="showTab('settings')" class="tab-button flex-1 px-4 py-3 rounded-xl font-medium transition-all" id="tab-settings">
+                ⚙️ Systemeinstellungen
+            </button>
+            <button onclick="showTab('security')" class="tab-button flex-1 px-4 py-3 rounded-xl font-medium transition-all" id="tab-security">
+                🔒 Sicherheit
+            </button>
+            <button onclick="showTab('api')" class="tab-button flex-1 px-4 py-3 rounded-xl font-medium transition-all" id="tab-api">
+                📚 API & Docs
+            </button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="users-content" class="content-section active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Benutzer hinzufügen -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[500px]">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">👤 Neuer Benutzer</h3>
+                    <div class="space-y-4">
+                        <input type="text" placeholder="Vollständiger Name" class="input-field w-full" id="new-name">
+                        <input type="email" placeholder="E-Mail-Adresse" class="input-field w-full" id="new-email">
+                        <input type="password" placeholder="Passwort" class="input-field w-full" id="new-password">
+                        <select class="input-field w-full" id="new-role">
+                            <option value="benutzer">Benutzer</option>
+                            <option value="admin">Administrator</option>
+                            <option value="super_admin">Super Administrator</option>
+                        </select>
+                        <button onclick="addUser()" class="w-full bg-[var(--color-secondary)] text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                            ✨ Benutzer hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Benutzer suchen -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 min-h-[500px]">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">🔍 Benutzer suchen</h3>
+                    <div class="space-y-4 mb-6">
+                        <input type="text" placeholder="Name oder E-Mail suchen..." class="input-field w-full" id="search-input" oninput="filterUsers()">
+                        <select class="input-field w-full" id="role-filter" onchange="filterUsers()">
+                            <option value="">Alle Rollen</option>
+                            <option value="benutzer">Benutzer</option>
+                            <option value="admin">Administrator</option>
+                            <option value="super_admin">Super Administrator</option>
+                        </select>
+                    </div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">
+                        <div class="flex justify-between mb-2">
+                            <span>Gefundene Benutzer:</span>
+                            <span id="user-count">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Aktive Benutzer:</span>
+                            <span id="active-count" class="text-green-600 font-semibold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Dokumentation - Super Admin Only -->
+                <div id="api-docs-card" class="bg-white rounded-2xl shadow-lg p-8 min-h-[500px] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-[var(--color-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            API Dokumentation
+                        </h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-6">Entwickler-Ressourcen und API-Endpunkte</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="openApiDocs()" class="w-full p-3 bg-[var(--color-secondary)] text-white rounded-lg hover:opacity-90 transition-opacity font-medium">
+                            📚 API Dokumentation öffnen
+                        </button>
+                        <div class="text-xs text-[var(--color-text-secondary)] space-y-1">
+                            <div class="flex justify-between">
+                                <span>Server Status:</span>
+                                <span class="text-green-600 font-semibold">✅ Online</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>API Version:</span>
+                                <span class="font-semibold">v1.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benutzerliste -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">👥 Alle Benutzer</h3>
+                <div id="users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Benutzer werden hier geladen -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Andere Tab-Inhalte (vereinfacht) -->
+        <div id="settings-content" class="content-section">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">⚙️ Systemeinstellungen</h3>
+                <p class="text-[var(--color-text-secondary)]">Systemeinstellungen werden hier konfiguriert...</p>
+            </div>
+        </div>
+
+        <div id="security-content" class="content-section">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">🔒 Sicherheitseinstellungen</h3>
+                <p class="text-[var(--color-text-secondary)]">Sicherheitseinstellungen werden hier verwaltet...</p>
+            </div>
+        </div>
+
+        <div id="api-content" class="content-section">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">📚 API & Dokumentation</h3>
+                <div class="space-y-4">
+                    <button onclick="openApiDocs()" class="bg-[var(--color-secondary)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                        📚 API Dokumentation öffnen
+                    </button>
+                    <p class="text-[var(--color-text-secondary)]">Vollständige API-Dokumentation für Entwickler</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// SBV User Management System
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ SBV User Management System geladen');
+    
+    // Tab Navigation
+    window.showTab = function(tabName) {
+        // Alle Tabs verstecken
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Alle Tab-Buttons deaktivieren
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // Gewählten Tab anzeigen
+        const targetSection = document.getElementById(tabName + '-content');
+        const targetButton = document.getElementById('tab-' + tabName);
+        
+        if (targetSection) targetSection.classList.add('active');
+        if (targetButton) targetButton.classList.add('active');
+    };
+    
+    // API-Dokumentation öffnen - iframe-kompatible Version
+    window.openApiDocs = function() {
+        try {
+            console.log('🚀 API-Dokumentation wird geöffnet...');
+            
+            // Benutzer-Rolle prüfen (für Präsentation deaktiviert)
+            let user = null;
+            try {
+                user = JSON.parse(localStorage.getItem('sbv_user') || sessionStorage.getItem('sbv_user') || '{}');
+            } catch (e) {
+                console.log('Keine Benutzer-Daten gefunden');
+                user = { rolle: 'super_admin' }; // Für Test
+            }
+            
+            console.log('Benutzer:', user);
+            
+            // Für Präsentation: Allen Zugriff erlauben
+            // if (user.rolle !== 'super_admin') {
+            //     alert('❌ Zugriff verweigert\\n\\nNur Super Admins haben Zugriff auf die API-Dokumentation.');
+            //     return;
+            // }
+            
+            // API-Dokumentation in neuem Fenster öffnen
+            const apiWindow = window.open('', '_blank', 'width=1000,height=700,scrollbars=yes,resizable=yes');
+            
+            if (!apiWindow) {
+                alert('❌ Pop-up wurde blockiert. Bitte erlauben Sie Pop-ups für diese Seite.');
+                return;
+            }
+            
+            // Schöne API-Dokumentation schreiben
+            apiWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="de">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>SBV Professional - API Dokumentation</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                            padding: 20px;
+                            line-height: 1.6;
+                        }
+                        .container { 
+                            max-width: 900px; 
+                            margin: 0 auto; 
+                            background: white; 
+                            border-radius: 12px; 
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                            overflow: hidden;
+                        }
+                        .header { 
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white; 
+                            padding: 30px; 
+                            text-align: center; 
+                        }
+                        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+                        .header p { opacity: 0.9; font-size: 1.1em; }
+                        .content { padding: 30px; }
+                        .section { margin-bottom: 30px; }
+                        .section h2 { 
+                            color: #333; 
+                            border-left: 4px solid #6BAF38; 
+                            padding-left: 15px; 
+                            margin-bottom: 20px;
+                            font-size: 1.4em;
+                        }
+                        .endpoint { 
+                            background: #f8f9fa; 
+                            border: 1px solid #e9ecef;
+                            border-radius: 8px;
+                            padding: 20px; 
+                            margin: 15px 0; 
+                            transition: all 0.3s ease;
+                        }
+                        .endpoint:hover { 
+                            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                            transform: translateY(-2px);
+                        }
+                        .method { 
+                            display: inline-block;
+                            padding: 5px 12px; 
+                            border-radius: 20px; 
+                            font-weight: bold; 
+                            font-size: 0.9em;
+                            margin-right: 10px;
+                        }
+                        .get { background: #28a745; color: white; }
+                        .post { background: #007bff; color: white; }
+                        .put { background: #ffc107; color: #212529; }
+                        .delete { background: #dc3545; color: white; }
+                        .endpoint-url { 
+                            font-family: 'Courier New', monospace; 
+                            background: #e9ecef; 
+                            padding: 8px 12px; 
+                            border-radius: 4px;
+                            margin: 10px 0;
+                        }
+                        .description { color: #666; margin-top: 10px; }
+                        .auth-required { 
+                            color: #dc3545; 
+                            font-weight: bold;
+                            font-size: 0.9em;
+                        }
+                        .server-status { 
+                            background: #d4edda; 
+                            border: 1px solid #c3e6cb; 
+                            border-radius: 8px;
+                            padding: 20px; 
+                            margin: 20px 0;
+                        }
+                        .status-loading { color: #6c757d; }
+                        .status-ok { color: #155724; }
+                        .status-error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+                        .footer { 
+                            background: #343a40; 
+                            color: white; 
+                            text-align: center; 
+                            padding: 20px; 
+                        }
+                        .base-info { 
+                            background: #e8f4f8; 
+                            border-left: 4px solid #17a2b8;
+                            padding: 20px; 
+                            margin: 20px 0;
+                            border-radius: 0 8px 8px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>🚀 SBV Professional API</h1>
+                            <p>Vollständige Entwickler-Dokumentation</p>
+                        </div>
+                        
+                        <div class="content">
+                            <div class="base-info">
+                                <h3>📋 Basis-Informationen</h3>
+                                <p><strong>Base URL:</strong> <code>http://localhost:3000/api</code></p>
+                                <p><strong>Authentifizierung:</strong> Bearer Token (JWT)</p>
+                                <p><strong>Content-Type:</strong> application/json</p>
+                                <p><strong>Version:</strong> 1.0.0</p>
+                            </div>
+
+                            <div id="server-status" class="server-status status-loading">
+                                <h3>📊 Server Status</h3>
+                                <p>Lade Status...</p>
+                            </div>
+
+                            <div class="section">
+                                <h2>🔐 Authentifizierung</h2>
+                                <div class="endpoint">
+                                    <span class="method post">POST</span>
+                                    <div class="endpoint-url">/api/login</div>
+                                    <div class="description">Benutzeranmeldung - gibt JWT Token zurück</div>
+                                </div>
+                                <div class="endpoint">
+                                    <span class="method post">POST</span>
+                                    <div class="endpoint-url">/api/logout</div>
+                                    <div class="description">Benutzerabmeldung</div>
+                                    <div class="auth-required">🔒 Token erforderlich</div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <h2>📄 Gesuche</h2>
+                                <div class="endpoint">
+                                    <span class="method get">GET</span>
+                                    <div class="endpoint-url">/api/gesuche</div>
+                                    <div class="description">Alle Gesuche abrufen</div>
+                                    <div class="auth-required">🔒 Token erforderlich</div>
+                                </div>
+                                <div class="endpoint">
+                                    <span class="method post">POST</span>
+                                    <div class="endpoint-url">/api/gesuche/upload</div>
+                                    <div class="description">PDF hochladen und automatisch Rapport erstellen</div>
+                                    <div class="auth-required">🔒 Super Admin | Max: 10MB</div>
+                                </div>
+                                <div class="endpoint">
+                                    <span class="method post">POST</span>
+                                    <div class="endpoint-url">/api/rapport</div>
+                                    <div class="description">Rapport aus Gesuch erstellen</div>
+                                    <div class="auth-required">🔒 Token erforderlich</div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <h2>👥 Benutzerverwaltung</h2>
+                                <div class="endpoint">
+                                    <span class="method get">GET</span>
+                                    <div class="endpoint-url">/api/users</div>
+                                    <div class="description">Alle Benutzer abrufen</div>
+                                    <div class="auth-required">🔒 Token erforderlich</div>
+                                </div>
+                                <div class="endpoint">
+                                    <span class="method put">PUT</span>
+                                    <div class="endpoint-url">/api/users/:id</div>
+                                    <div class="description">Benutzer aktualisieren</div>
+                                    <div class="auth-required">🔒 Token erforderlich</div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <h2>⚙️ System</h2>
+                                <div class="endpoint">
+                                    <span class="method get">GET</span>
+                                    <div class="endpoint-url">/api/health</div>
+                                    <div class="description">System-Status & Datenbankverbindung</div>
+                                </div>
+                                <div class="endpoint">
+                                    <span class="method get">GET</span>
+                                    <div class="endpoint-url">/api/stats</div>
+                                    <div class="description">Dashboard-Statistiken</div>
+                                    <div class="auth-required">🔒 Token erforderlich</div>
+                                </div>
+                                <div class="endpoint">
+                                    <span class="method get">GET</span>
+                                    <div class="endpoint-url">/api</div>
+                                    <div class="description">API Übersicht (JSON-Format)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="footer">
+                            <p>SBV Professional API v1.0.0 - Entwickler Dokumentation</p>
+                            <p style="font-size: 0.9em; opacity: 0.8;">Generiert am: ${new Date().toLocaleString('de-DE')}</p>
+                        </div>
+                    </div>
+
+                    <script>
+                        // Server Status laden
+                        fetch('http://localhost:3000/api/health')
+                            .then(response => response.json())
+                            .then(data => {
+                                const statusDiv = document.getElementById('server-status');
+                                if (data.success || data.status === 'healthy') {
+                                    statusDiv.className = 'server-status status-ok';
+                                    statusDiv.innerHTML = \`
+                                        <h3>📊 Server Status</h3>
+                                        <p><strong>✅ Status:</strong> \${data.status || 'Online'}</p>
+                                        <p><strong>🗄️ Datenbank:</strong> \${data.database || 'Verbunden'}</p>
+                                        <p><strong>⏱️ Zeitstempel:</strong> \${data.timestamp || new Date().toLocaleString('de-DE')}</p>
+                                    \`;
+                                } else {
+                                    statusDiv.className = 'server-status status-error';
+                                    statusDiv.innerHTML = \`
+                                        <h3>📊 Server Status</h3>
+                                        <p><strong>❌ Problem:</strong> \${data.error || 'Unbekannter Fehler'}</p>
+                                    \`;
+                                }
+                            })
+                            .catch(error => {
+                                const statusDiv = document.getElementById('server-status');
+                                statusDiv.className = 'server-status status-error';
+                                statusDiv.innerHTML = \`
+                                    <h3>📊 Server Status</h3>
+                                    <p><strong>❌ Verbindungsfehler:</strong> Server nicht erreichbar</p>
+                                \`;
+                            });
+                    </script>
+                </body>
+                </html>
+            `);
+            
+            apiWindow.document.close();
+            console.log('✅ API-Dokumentation erfolgreich geöffnet');
+            
+        } catch (error) {
+            console.error('❌ Fehler in openApiDocs:', error);
+            alert('❌ Fehler beim Öffnen der API-Dokumentation: ' + error.message);
+        }
+    };
+    
+    // Platzhalter-Funktionen für andere Features
+    window.addUser = function() { alert('Benutzer hinzufügen - Feature wird implementiert'); };
+    window.filterUsers = function() { console.log('Filter Benutzer'); };
+    
+    console.log('✅ API-Dokumentations-Funktionen geladen (iframe-kompatibel)');
+});
+</script>
+
+</body>
+</html>

@@ -193,6 +193,43 @@ pool.connect((err, client, done) => {
 
 // Routes
 
+// API Documentation endpoint
+app.get('/api', (req, res) => {
+    res.json({
+        name: 'SBV Professional API',
+        version: '1.0.0',
+        description: 'API für das SBV Gesuch- und Rapport-System',
+        endpoints: {
+            authentication: {
+                'POST /api/auth/login': 'Benutzeranmeldung',
+                'POST /api/auth/logout': 'Benutzerabmeldung'
+            },
+            gesuche: {
+                'GET /api/gesuche': 'Alle Gesuche abrufen',
+                'POST /api/gesuche': 'Neues Gesuch erstellen',
+                'POST /api/gesuche/upload': 'PDF-Upload (Super Admin)'
+            },
+            berichte: {
+                'GET /api/berichte': 'Alle Berichte abrufen',
+                'POST /api/berichte': 'Neuen Rapport erstellen (Admin/Super Admin)',
+                'PUT /api/berichte/:id': 'Rapport bearbeiten (Admin/Super Admin)',
+                'POST /api/berichte/from-gesuch': 'Rapport aus Gesuch erstellen'
+            },
+            system: {
+                'GET /api/health': 'System-Status',
+                'GET /api/dashboard/stats': 'Dashboard-Statistiken'
+            },
+            users: {
+                'GET /api/users': 'Benutzer abrufen',
+                'POST /api/users': 'Neuen Benutzer erstellen'
+            }
+        },
+        authentication: 'Bearer Token (JWT)',
+        baseUrl: `http://localhost:${PORT}/api`,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Serve main application
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/login.html'));
@@ -930,6 +967,224 @@ app.get('/api/berichte', async (req, res) => {
     }
 });
 
+// Update Rapport/Bericht - PHASE 1: Rapport-Editing
+app.put('/api/berichte/:id', authenticateToken, async (req, res) => {
+    try {
+        const berichtId = req.params.id;
+        const { titel, beschreibung, jahr, status, notizen } = req.body;
+        
+        // Validierung der Eingabedaten
+        if (!titel || titel.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Titel ist erforderlich'
+            });
+        }
+        
+        // Prüfe ob Bericht existiert
+        const checkResult = await pool.query('SELECT * FROM sbv_berichte WHERE id = $1', [berichtId]);
+        
+        if (checkResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bericht nicht gefunden'
+            });
+        }
+        
+        const existingBericht = checkResult.rows[0];
+        
+        // Rollenbasierte Berechtigungen
+        const userRole = req.user.rolle;
+        
+        // User: nur read-only (sollte hier nicht ankommen, aber Sicherheit)
+        if (userRole === 'user') {
+            return res.status(403).json({
+                success: false,
+                message: 'Keine Berechtigung - Benutzer können Rapporte nur anzeigen'
+            });
+        }
+        
+        // Admin: kann bearbeiten, aber nicht Status auf "genehmigt" setzen
+        if (userRole === 'admin' && status === 'genehmigt') {
+            return res.status(403).json({
+                success: false,
+                message: 'Keine Berechtigung - Admins können Rapporte nicht genehmigen'
+            });
+        }
+        
+        // Super Admin: kann alles
+        // (keine weitere Überprüfung nötig)
+        
+        // Update Bericht
+        const updateResult = await pool.query(`
+            UPDATE sbv_berichte 
+            SET 
+                titel = $1,
+                beschreibung = $2,
+                jahr = $3,
+                status = $4,
+                notizen = $5,
+                aktualisiert_am = NOW(),
+                aktualisiert_von = $6
+            WHERE id = $7
+            RETURNING id, titel, beschreibung, jahr, status, notizen, 
+                      erstellt_am, aktualisiert_am, erstellt_von, aktualisiert_von
+        `, [
+            titel.trim(),
+            beschreibung || null,
+            jahr || existingBericht.jahr,
+            status || existingBericht.status,
+            notizen || null,
+            req.user.email,
+            berichtId
+        ]);
+        
+        const updatedBericht = updateResult.rows[0];
+        
+        logger.info('Bericht aktualisiert', {
+            id: berichtId,
+            titel: titel,
+            user: req.user.email,
+            role: req.user.rolle,
+            status: status
+        });
+        
+        res.json({
+            success: true,
+            message: 'Bericht erfolgreich aktualisiert',
+            data: updatedBericht
+        });
+        
+    } catch (error) {
+        logger.error('Error updating bericht:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Aktualisieren des Berichts'
+        });
+    }
+});
+
+// CREATE new Rapport (Admin/Super Admin only)
+app.post('/api/berichte', authenticateToken, async (req, res) => {
+    try {
+        // Rolle prüfen: nur Admin und Super Admin können Rapporte erstellen
+        if (!['Admin', 'Super Admin'].includes(req.user.rolle)) {
+            return res.status(403).json({
+                success: false,
+                error: 'Zugriff verweigert. Nur Admins können Rapporte erstellen.'
+            });
+        }
+
+        // Input-Validierung
+        const rapportSchema = joi.object({
+            titel: joi.string().min(3).max(255).required(),
+            jahr: joi.number().integer().min(2020).max(2030).required(),
+            status: joi.string().valid('entwurf', 'fertig').required(),
+            bericht_typ: joi.string().valid('rapport', 'jahresbericht').default('rapport'),
+            teilprojekt: joi.string().optional(),
+            beschreibung: joi.string().optional(),
+            erstellt_von: joi.string().email().optional(),
+            erstellt_am: joi.string().isoDate().optional()
+        });
+
+        const { error, value } = rapportSchema.validate(req.body);
+        if (error) {
+            logger.warn('Validation error in POST /api/berichte:', error.details);
+            return res.status(400).json({
+                success: false,
+                error: 'Ungültige Eingabedaten: ' + error.details.map(d => d.message).join(', ')
+            });
+        }
+
+        const {
+            titel,
+            jahr,
+            status,
+            bericht_typ,
+            teilprojekt,
+            beschreibung,
+            erstellt_von,
+            erstellt_am
+        } = value;
+
+        logger.info('📝 Erstelle neuen Rapport:', {
+            titel,
+            jahr,
+            status,
+            user: req.user.email,
+            role: req.user.rolle
+        });
+
+        // Neuen Rapport in die Datenbank einfügen
+        const insertResult = await pool.query(
+            `INSERT INTO sbv_berichte (
+                titel, 
+                jahr, 
+                status, 
+                bericht_typ, 
+                teilprojekt,
+                beschreibung,
+                erstellt_von, 
+                erstellt_am,
+                aktualisiert_von,
+                aktualisiert_am
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+            RETURNING *`,
+            [
+                titel,
+                jahr,
+                status,
+                bericht_typ || 'rapport',
+                teilprojekt || null,
+                beschreibung || null,
+                erstellt_von || req.user.email,
+                erstellt_am || new Date().toISOString(),
+                req.user.email,
+                new Date().toISOString()
+            ]
+        );
+
+        if (insertResult.rows.length === 0) {
+            throw new Error('Rapport konnte nicht erstellt werden');
+        }
+
+        const neuerRapport = insertResult.rows[0];
+
+        logger.info('✅ Rapport erfolgreich erstellt:', {
+            id: neuerRapport.id,
+            titel: neuerRapport.titel,
+            status: neuerRapport.status,
+            user: req.user.email
+        });
+
+        // Erfolgreiche Antwort mit dem neuen Rapport
+        res.status(201).json({
+            success: true,
+            message: `Rapport "${titel}" erfolgreich als ${status} erstellt`,
+            data: neuerRapport,
+            metadata: {
+                created_by: req.user.email,
+                created_at: new Date().toISOString(),
+                type: 'rapport_creation'
+            }
+        });
+
+    } catch (error) {
+        logger.error('❌ Error creating rapport:', {
+            error: error.message,
+            stack: error.stack,
+            user: req.user?.email,
+            body: req.body
+        });
+        
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Erstellen des Rapports',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 // Get all documents (Dokumente)
 app.get('/api/dokumente', async (req, res) => {
     try {
@@ -1394,6 +1649,36 @@ app.get('/api/dashboard/stats', async (req, res) => {
             error: 'Failed to fetch dashboard statistics'
         });
     }
+});
+
+// API Documentation
+app.get('/api', (req, res) => {
+    res.status(200).json({
+        api: "SBV Professional App API",
+        version: "1.0",
+        endpoints: {
+            authentication: {
+                "/api/login": "POST - Benutzeranmeldung",
+                "/api/logout": "POST - Benutzerabmeldung"
+            },
+            users: {
+                "/api/users": "GET - Benutzerliste (Auth required)",
+                "/api/users/:id": "PUT - Benutzer aktualisieren (Auth required)"
+            },
+            gesuche: {
+                "/api/gesuche": "GET - Gesuche abrufen (Auth required)",
+                "/api/gesuche/upload": "POST - Gesuch hochladen (Auth required)",
+                "/api/rapport": "POST - Rapport erstellen (Auth required)"
+            },
+            system: {
+                "/api/health": "GET - Systemstatus",
+                "/api/stats": "GET - Statistiken (Auth required)",
+                "/api": "GET - API Übersicht"
+            }
+        },
+        authentication: "Bearer Token required für geschützte Endpunkte",
+        contentTypes: ["application/json", "multipart/form-data"]
+    });
 });
 
 // Health check
