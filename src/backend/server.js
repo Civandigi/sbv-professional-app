@@ -2099,6 +2099,114 @@ app.post('/api/dokumente/upload', upload.single('document'), async (req, res) =>
     }
 });
 
+// Upload Rapport mit Dokumenten
+app.post('/api/berichte/upload', authenticateToken, upload.single('rapportDocument'), async (req, res) => {
+    try {
+        // Berechtigung prüfen
+        if (!['admin', 'super_admin'].includes(req.user.rolle)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Keine Berechtigung - Nur Admins können Rapporte erstellen'
+            });
+        }
+
+        console.log('📎 Rapport Upload gestartet:', {
+            file: req.file ? req.file.originalname : 'keine Datei',
+            user: req.user.email,
+            body: req.body
+        });
+
+        const {
+            teilprojekt, jahr, periode, budgetBrutto, istBrutto, aufwandsminderung,
+            wasLiefGut, abweichungen, lessonsLearned, dokumenteHinweise,
+            massnahmen, kpis
+        } = req.body;
+
+        // Validierung
+        if (!teilprojekt || !jahr || !periode) {
+            return res.status(400).json({
+                success: false,
+                message: 'Teilprojekt, Jahr und Periode sind erforderlich'
+            });
+        }
+
+        // Datei-Informationen
+        let uploadedFile = null;
+        if (req.file) {
+            // Validierung der Datei
+            if (req.file.mimetype !== 'application/pdf') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Nur PDF-Dateien sind erlaubt'
+                });
+            }
+
+            if (req.file.size > 10 * 1024 * 1024) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Datei zu groß. Maximale Größe: 10MB'
+                });
+            }
+
+            uploadedFile = {
+                filename: req.file.originalname,
+                path: req.file.path,
+                size: req.file.size
+            };
+        }
+
+        // Rapport in Datenbank speichern
+        const berichtResult = await pool.query(`
+            INSERT INTO sbv_berichte (
+                titel, teilprojekt, jahr, periode, status,
+                budget_brutto, ist_brutto, aufwandsminderung,
+                was_lief_gut, abweichungen, lessons_learned,
+                dokumente_hinweise, uploaded_file, file_size,
+                massnahmen_json, kpis_json,
+                erstellt_von, erstellt_am
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+            RETURNING *
+        `, [
+            `Rapport ${teilprojekt} ${periode}`,
+            teilprojekt,
+            parseInt(jahr),
+            periode,
+            'zur-pruefung',
+            parseFloat(budgetBrutto) || 0,
+            parseFloat(istBrutto) || 0,
+            parseFloat(aufwandsminderung) || 0,
+            wasLiefGut || '',
+            abweichungen || '',
+            lessonsLearned || '',
+            dokumenteHinweise || '',
+            uploadedFile ? uploadedFile.filename : null,
+            uploadedFile ? uploadedFile.size : null,
+            massnahmen ? JSON.stringify(massnahmen) : '[]',
+            kpis ? JSON.stringify(kpis) : '[]',
+            req.user.userId
+        ]);
+
+        const neuerBericht = berichtResult.rows[0];
+
+        console.log('✅ Rapport erfolgreich erstellt:', neuerBericht.id);
+
+        res.status(201).json({
+            success: true,
+            data: neuerBericht,
+            message: 'Rapport erfolgreich erstellt' + (uploadedFile ? ' und Dokument hochgeladen' : ''),
+            uploaded_file: uploadedFile
+        });
+
+    } catch (error) {
+        console.error('❌ Fehler beim Rapport-Upload:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Interner Serverfehler beim Upload',
+            error: error.message
+        });
+    }
+});
+
 // Get assignments (Zuweisungen)
 app.get('/api/zuweisungen', async (req, res) => {
     try {

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload-Test für Phase 3.3</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .upload-form { padding: 20px; background: #f8f9fa; border-radius: 5px; }
+        input[type="file"] { margin: 10px 0; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Phase 3.3: Upload-Funktionalität Test</h1>
+    
+    <div class="test-section success">
+        <h3>✅ Frontend Upload-UI implementiert</h3>
+        <p>Datei-Upload-Feld in Rapport-Modal hinzugefügt mit:</p>
+        <ul>
+            <li>Drag & Drop Bereich</li>
+            <li>PDF-Validierung (max 10MB)</li>
+            <li>File-Info Anzeige</li>
+            <li>Remove-Funktion</li>
+        </ul>
+    </div>
+
+    <div class="test-section success">
+        <h3>✅ Backend Upload-Endpoint erstellt</h3>
+        <p>Neuer Endpoint <code>/api/berichte/upload</code> implementiert mit:</p>
+        <ul>
+            <li>Multipart-Form-Verarbeitung</li>
+            <li>Datei-Validierung</li>
+            <li>Datenbank-Integration</li>
+            <li>Berechtigungsprüfung</li>
+        </ul>
+    </div>
+
+    <div class="test-section warning">
+        <h3>🧪 Test-Upload Formular</h3>
+        <div class="upload-form">
+            <h4>Teste direkten Upload zum Backend:</h4>
+            <form id="uploadForm">
+                <div>
+                    <label>Teilprojekt:</label>
+                    <select name="teilprojekt" required>
+                        <option value="">Bitte wählen</option>
+                        <option value="Leitmedien">Leitmedien</option>
+                        <option value="Digitale Medien">Digitale Medien</option>
+                        <option value="Social Media">Social Media</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Jahr:</label>
+                    <select name="jahr" required>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Periode:</label>
+                    <select name="periode" required>
+                        <option value="Q1-2024">Q1-2024</option>
+                        <option value="Q2-2024">Q2-2024</option>
+                    </select>
+                </div>
+                <div>
+                    <label>IST Brutto (CHF):</label>
+                    <input type="number" name="istBrutto" value="30000" required>
+                </div>
+                <div>
+                    <label>PDF-Dokument:</label>
+                    <input type="file" name="rapportDocument" accept=".pdf">
+                    <small>Optional - nur PDF-Dateien, max 10MB</small>
+                </div>
+                <div>
+                    <label>Was lief gut:</label>
+                    <textarea name="wasLiefGut" rows="3">Alle Ziele wurden erreicht und Budget eingehalten.</textarea>
+                </div>
+                <button type="submit">📎 Test-Upload starten</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>⏳ Upload läuft...</p>';
+            
+            try {
+                // Token holen
+                const token = localStorage.getItem('authToken') || 'test-token';
+                
+                const formData = new FormData(this);
+                
+                const response = await fetch('/api/berichte/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="test-section success">
+                            <h4>✅ Upload erfolgreich!</h4>
+                            <p><strong>Rapport ID:</strong> ${result.data.id}</p>
+                            <p><strong>Status:</strong> ${result.data.status}</p>
+                            <p><strong>Datei:</strong> ${result.uploaded_file ? result.uploaded_file.filename : 'Keine Datei'}</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-section error">
+                            <h4>❌ Upload fehlgeschlagen</h4>
+                            <p><strong>Fehler:</strong> ${result.message}</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-section error">
+                        <h4>❌ Netzwerk-Fehler</h4>
+                        <p><strong>Fehler:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
