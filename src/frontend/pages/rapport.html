@@ -1010,7 +1010,7 @@
                     throw new Error('Kein Authentifizierungstoken gefunden');
                 }
 
-                const response = await fetch('/api/rapporte/admin/all', {
+                const response = await fetch('/api/berichte', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1159,7 +1159,7 @@
             
             try {
                 const token = sessionStorage.getItem('sbv_token');
-                const response = await fetch(`/api/rapporte/${reportId}/approve`, {
+                const response = await fetch(`/api/berichte/${reportId}/approve`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
