@@ -60,7 +60,7 @@
                         </svg>
                         <span>Gesuch hochladen</span>
                     </button>
-                    <button class="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-orange);" onclick="SBVYearFixer.fixYearMismatch()">
+                    <button class="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-orange);" onclick="fixYearMismatches()">
                         🔧 Jahre korrigieren
                     </button>
                 </div>
@@ -188,6 +188,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('SBV Archiv System geladen');
             loadAvailableYears();
+            
+            // Initialize Enhanced Upload System
+            setTimeout(() => {
+                initializeEnhancedUpload();
+            }, 1000);
         });
 
         // Load available years from database
@@ -345,6 +350,127 @@
             document.getElementById('uploadModal').classList.add('hidden');
             document.getElementById('uploadModal').classList.remove('flex');
             document.getElementById('uploadForm').reset();
+            
+            // Clear extraction preview
+            const preview = document.querySelector('.extraction-preview');
+            if (preview) {
+                preview.remove();
+            }
+        }
+
+        // ===== ENHANCED UPLOAD SYSTEM =====
+        
+        function initializeEnhancedUpload() {
+            console.log('🚀 Enhanced Upload System wird initialisiert...');
+            
+            // File Input Change Handler für intelligente Jahr-Erkennung
+            const gesuchFileInput = document.getElementById('gesuchFile');
+            if (gesuchFileInput) {
+                gesuchFileInput.addEventListener('change', handleIntelligentFileSelection);
+                console.log('✅ File Change Handler registriert');
+            }
+        }
+
+        function handleIntelligentFileSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            console.log('📎 Datei ausgewählt:', file.name, 'Größe:', file.size);
+
+            // Extrahiere Jahr aus Dateiname
+            const yearMatches = file.name.match(/20(\d{2})/g);
+            if (yearMatches && yearMatches.length > 0) {
+                const detectedYear = parseInt(yearMatches[0]);
+                console.log('📅 Jahr erkannt:', detectedYear);
+                
+                // Setze erkanntes Jahr im Dropdown
+                const yearSelect = document.getElementById('uploadYear');
+                if (yearSelect) {
+                    const yearOption = yearSelect.querySelector(`option[value="${detectedYear}"]`);
+                    if (yearOption) {
+                        yearSelect.value = detectedYear;
+                        console.log('✅ Jahr automatisch gesetzt:', detectedYear);
+                        
+                        // Visuelles Feedback
+                        yearSelect.style.background = '#dcfce7'; // Grüner Hintergrund
+                        setTimeout(() => {
+                            yearSelect.style.background = '';
+                        }, 2000);
+                    }
+                }
+            }
+
+            // Generiere automatische Beschreibung
+            const beschreibungField = document.getElementById('uploadDescription');
+            if (beschreibungField) {
+                const autoDescription = `Hochgeladen am ${new Date().toLocaleDateString('de-DE')} - ${file.name.replace('.pdf', '').replace(/[-_]/g, ' ')}`;
+                beschreibungField.value = autoDescription;
+                console.log('📝 Beschreibung automatisch gesetzt');
+            }
+
+            // Zeige Extraktion-Info
+            showExtractionPreview(file);
+        }
+
+        function showExtractionPreview(file) {
+            // Entferne vorherige Preview
+            const existingPreview = document.querySelector('.extraction-preview');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+
+            // Erstelle neue Preview
+            const preview = document.createElement('div');
+            preview.className = 'extraction-preview bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3';
+            
+            const yearMatches = file.name.match(/20(\d{2})/g);
+            const detectedYear = yearMatches ? parseInt(yearMatches[0]) : new Date().getFullYear();
+            
+            preview.innerHTML = `
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-blue-600">🤖</span>
+                    <span class="font-semibold text-blue-800 text-sm">Automatisch erkannt:</span>
+                </div>
+                <div class="text-sm text-blue-700 space-y-1">
+                    <div><strong>Jahr:</strong> ${detectedYear}</div>
+                    <div><strong>Datei:</strong> ${file.name}</div>
+                    <div><strong>Größe:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                </div>
+                <p class="text-xs text-blue-600 mt-2">📝 Felder wurden automatisch ausgefüllt - bitte überprüfen!</p>
+            `;
+
+            // Füge Preview nach dem Datei-Input hinzu
+            const fileInputDiv = document.getElementById('gesuchFile').parentNode;
+            fileInputDiv.appendChild(preview);
+        }
+
+        // Jahr-Fix Tool Integration (für Button-Aufruf)
+        async function fixYearMismatches() {
+            if (!confirm('Möchten Sie alle Jahr-Mismatches in der Datenbank korrigieren?\n\nDies wird automatisch die Jahre basierend auf Dateinamen aktualisieren.')) {
+                return;
+            }
+
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                const response = await fetch('/api/debug/fix-years', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert(`✅ Erfolg!\n\n${result.fixedCount} Jahr-Mismatches wurden behoben.\nInsgesamt überprüft: ${result.totalMismatches} Einträge`);
+                    loadAvailableYears(); // Refresh display
+                } else {
+                    alert('❌ Fehler: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Fehler beim Jahr-Fix:', error);
+                alert('❌ Fehler beim Korrigieren der Jahre: ' + error.message);
+            }
         }
 
         // Handle upload form submission
