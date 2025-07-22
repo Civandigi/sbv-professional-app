@@ -1641,8 +1641,20 @@ app.post('/api/gesuche/upload-intelligent', authenticateToken, upload.fields([
 // Upload Gesuch with automatic Rapport generation
 app.post('/api/gesuche/upload', authenticateToken, upload.single('gesuch'), async (req, res) => {
     try {
+        console.log('📥 Upload-Request erhalten:', {
+            user: req.user?.email,
+            rolle: req.user?.rolle,
+            file: req.file ? {
+                originalname: req.file.originalname,
+                size: req.file.size,
+                mimetype: req.file.mimetype
+            } : 'KEINE DATEI',
+            body: req.body
+        });
+
         // Admin und Super Admin dürfen Gesuche hochladen
         if (!['admin', 'super_admin'].includes(req.user.rolle)) {
+            console.log('❌ Berechtigung abgelehnt für Rolle:', req.user.rolle);
             return res.status(403).json({ 
                 success: false,
                 message: 'Keine Berechtigung - Nur Admins können Gesuche hochladen' 
@@ -1761,11 +1773,20 @@ app.post('/api/gesuche/upload', authenticateToken, upload.single('gesuch'), asyn
         });
         
     } catch (error) {
+        console.error('❌ UPLOAD-FEHLER DETAILS:', {
+            message: error.message,
+            stack: error.stack,
+            user: req.user?.email,
+            file: req.file?.originalname,
+            body: req.body
+        });
+        
         logger.error('Fehler beim Gesuch-Upload:', error);
         res.status(500).json({
             success: false,
             message: 'Fehler beim Hochladen des Gesuchs',
-            error: process.env.NODE_ENV === 'development' ? error.message : 'Interner Server-Fehler'
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : 'Interner Server-Fehler'
         });
     }
 });
