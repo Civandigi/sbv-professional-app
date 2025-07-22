@@ -394,12 +394,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Teilprojekt</label>
-                            <select name="teilprojekt" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select name="teilprojekt" id="teilprojektSelect" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Bitte wählen</option>
-                                <option value="leitmedien">Leitmedien</option>
-                                <option value="digitale-medien">Digitale Medien</option>
-                                <option value="messen">Messen & Ausstellungen</option>
-                                <option value="social-media">Social Media</option>
+                                <!-- Wird dynamisch von loadTeilprojekte() gefüllt -->
                             </select>
                         </div>
                         <div>
@@ -655,33 +652,113 @@
             displayRapporte(demoData);
         }
 
-        function loadTeilprojekte() {
+        async function loadTeilprojekte() {
             const container = document.getElementById('teilprojekteContainer');
             if (!container) return;
             
-            container.innerHTML = Object.entries(teilprojektTemplates).map(([key, template]) => `
-                <div class="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 class="text-lg font-semibold mb-4">${formatTeilprojektName(key)}</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Budget:</span>
-                            <span class="font-semibold">CHF ${template.budget.toLocaleString()}</span>
+            try {
+                console.log('🔄 Lade Teilprojekte von API...');
+                const response = await fetch('/api/teilprojekte');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Teilprojekte geladen:', result);
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    // Echte API-Daten verwenden
+                    container.innerHTML = result.data.map(tp => `
+                        <div class="bg-white p-6 rounded-lg shadow-sm border">
+                            <h3 class="text-lg font-semibold mb-4">${tp.name}</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Budget:</span>
+                                    <span class="font-semibold">CHF ${parseFloat(tp.budget || 0).toLocaleString()}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Jahr:</span>
+                                    <span class="font-semibold">${tp.jahr}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status:</span>
+                                    <span class="px-2 py-1 text-xs rounded-full ${tp.status === 'aktiv' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${tp.status}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Beschreibung:</span>
+                                    <p class="text-sm mt-1">${tp.beschreibung || 'Keine Beschreibung verfügbar'}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="text-gray-600">Massnahmen:</span>
-                            <ul class="list-disc list-inside mt-1 text-sm">
-                                ${template.massnahmen.map(m => `<li>${m.name} (CHF ${m.budget.toLocaleString()})</li>`).join('')}
-                            </ul>
+                    `).join('');
+                    
+                    // Update Teilprojekt-Filter
+                    const teilprojektFilter = document.getElementById('teilprojektFilter');
+                    if (teilprojektFilter) {
+                        const currentValue = teilprojektFilter.value;
+                        teilprojektFilter.innerHTML = '<option value="">Alle Teilprojekte</option>' + 
+                            result.data.map(tp => `<option value="${tp.name.toLowerCase()}">${tp.name}</option>`).join('');
+                        teilprojektFilter.value = currentValue;
+                    }
+                    
+                    // Update Teilprojekt-Select im Modal
+                    const teilprojektSelect = document.getElementById('teilprojektSelect');
+                    if (teilprojektSelect) {
+                        const currentValue = teilprojektSelect.value;
+                        teilprojektSelect.innerHTML = '<option value="">Bitte wählen</option>' + 
+                            result.data.map(tp => `<option value="${tp.id}">${tp.name}</option>`).join('');
+                        teilprojektSelect.value = currentValue;
+                    }
+                    
+                    console.log('✅ Teilprojekte erfolgreich angezeigt');
+                } else {
+                    // Fallback zu Demo-Daten
+                    console.log('⚠️ Keine API-Daten, verwende Demo-Daten');
+                    container.innerHTML = Object.entries(teilprojektTemplates).map(([key, template]) => `
+                        <div class="bg-white p-6 rounded-lg shadow-sm border">
+                            <h3 class="text-lg font-semibold mb-4">${formatTeilprojektName(key)}</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Budget:</span>
+                                    <span class="font-semibold">CHF ${template.budget.toLocaleString()}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Massnahmen:</span>
+                                    <ul class="list-disc list-inside mt-1 text-sm">
+                                        ${template.massnahmen.map(m => `<li>${m.name} (CHF ${m.budget.toLocaleString()})</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">KPIs:</span>
+                                    <ul class="list-disc list-inside mt-1 text-sm">
+                                        ${template.kpis.map(k => `<li>${k.name}: ${k.zielwert.toLocaleString()} ${k.einheit}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="text-gray-600">KPIs:</span>
-                            <ul class="list-disc list-inside mt-1 text-sm">
-                                ${template.kpis.map(k => `<li>${k.name}: ${k.zielwert.toLocaleString()} ${k.einheit}</li>`).join('')}
-                            </ul>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Teilprojekte:', error);
+                // Fallback zu Demo-Daten bei Fehler
+                container.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <p class="text-red-600">⚠️ Fehler beim Laden der Teilprojekte: ${error.message}</p>
+                        <p class="text-sm text-red-500 mt-1">Fallback zu Demo-Daten...</p>
+                    </div>
+                ` + Object.entries(teilprojektTemplates).map(([key, template]) => `
+                    <div class="bg-white p-6 rounded-lg shadow-sm border">
+                        <h3 class="text-lg font-semibold mb-4">${formatTeilprojektName(key)} (Demo)</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Budget:</span>
+                                <span class="font-semibold">CHF ${template.budget.toLocaleString()}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         function loadKPIs() {
