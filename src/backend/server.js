@@ -5,8 +5,17 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const joi = require('joi');
+
+// Simple Logger für Präsentation
+const logger = {
+    info: (msg, meta = '') => console.log(`[INFO] ${new Date().toISOString()} - ${msg}`, meta),
+    error: (msg, meta = '') => console.error(`[ERROR] ${new Date().toISOString()} - ${msg}`, meta),
+    debug: (msg, meta = '') => console.debug(`[DEBUG] ${new Date().toISOString()} - ${msg}`, meta),
+    warn: (msg, meta = '') => console.warn(`[WARN] ${new Date().toISOString()} - ${msg}`, meta)
+};
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,10 +41,10 @@ const pool = new Pool({
 // Test database connection and create super admin
 pool.connect()
     .then(() => {
-        console.log('✅ PostgreSQL database connected successfully!');
+        logger.info('✅ PostgreSQL database connected successfully!');
         createSuperAdminUser();
     })
-    .catch(err => console.error('❌ PostgreSQL connection error:', err));
+    .catch(err => logger.error('❌ PostgreSQL connection error:', err));
 
 // Create Super Admin User
 async function createSuperAdminUser() {
@@ -196,7 +205,21 @@ app.get('/dashboard.html', (req, res) => {
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        // Input-Validierung
+        const loginSchema = joi.object({
+            email: joi.string().email().required(),
+            password: joi.string().min(1).required()
+        });
+
+        const { error, value } = loginSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({
+                success: false,
+                message: 'Ungültige Eingabe: ' + error.details[0].message
+            });
+        }
+
+        const { email, password } = value;
 
         if (!email || !password) {
             return res.status(400).json({
@@ -447,14 +470,23 @@ app.post('/api/users', authenticateToken, async (req, res) => {
             });
         }
         
-        const { name, email, rolle, status = 'aktiv' } = req.body;
-        
-        if (!name || !email || !rolle) {
+        // Input-Validierung
+        const userSchema = joi.object({
+            name: joi.string().min(2).max(100).required(),
+            email: joi.string().email().required(),
+            rolle: joi.string().valid('super_admin', 'admin', 'nutzer').required(),
+            status: joi.string().valid('aktiv', 'inaktiv').default('aktiv')
+        });
+
+        const { error, value } = userSchema.validate(req.body);
+        if (error) {
             return res.status(400).json({
                 success: false,
-                error: 'Name, E-Mail und Rolle sind erforderlich.'
+                error: 'Ungültige Eingabe: ' + error.details[0].message
             });
         }
+
+        const { name, email, rolle, status } = value;
         
         // Check if email already exists
         const existingUser = await pool.query('SELECT id FROM sbv_benutzer WHERE email = $1', [email]);
@@ -1268,16 +1300,16 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 SBV Professional Server running on http://localhost:${PORT}`);
-    console.log(`📊 API documentation available at http://localhost:${PORT}/api`);
-    console.log(`💾 Database: PostgreSQL (${pool.options.host}:${pool.options.port})`);
+    logger.info(`🚀 SBV Professional Server running on http://localhost:${PORT}`);
+    logger.info(`📊 API documentation available at http://localhost:${PORT}/api`);
+    logger.info(`💾 Database: PostgreSQL (${pool.options.host}:${pool.options.port})`);
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-    console.log('🛑 Shutting down server...');
+    logger.info('🛑 Shutting down server...');
     pool.end(() => {
-        console.log('✅ Database connections closed.');
+        logger.info('✅ Database connections closed.');
         process.exit(0);
     });
 });
