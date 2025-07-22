@@ -179,6 +179,7 @@
 
     <!-- Enhanced Upload System -->
     <script src="../scripts/upload-enhanced.js"></script>
+    <script src="../scripts/demo-data-loader.js"></script>
     
     <script>
         // Archive System - Database Connected
@@ -342,8 +343,31 @@
 
         // Upload Gesuch Functions
         function uploadGesuch() {
-            document.getElementById('uploadModal').classList.remove('hidden');
-            document.getElementById('uploadModal').classList.add('flex');
+            console.log('🚀 Upload-Modal öffnen...');
+            const modal = document.getElementById('uploadModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Cache-Buster: Erzwinge Neuladen der Jahr-Optionen
+            setTimeout(() => {
+                const yearSelect = document.getElementById('uploadYear');
+                if (yearSelect && yearSelect.options.length < 10) {
+                    console.log('⚠️ Jahr-Dropdown hat zu wenige Optionen, wird repariert...');
+                    yearSelect.innerHTML = `
+                        <option value="2030">2030</option>
+                        <option value="2029">2029</option>
+                        <option value="2028">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2026">2026</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                    `;
+                }
+            }, 100);
         }
 
         function closeUploadModal() {
