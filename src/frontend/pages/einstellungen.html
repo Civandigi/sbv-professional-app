@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SBV System-Einstellungen</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        :root {
+            --color-black: #000000;
+            --color-light-blue: #A4D2F4;
+            --color-green: #6BAF38;
+            --color-background: #F8FAFC;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
+            --color-orange: #F59E0B;
+            --color-yellow: #FCD34D;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--color-background);
+        }
+        .setting-card {
+            transition: all 0.2s ease;
+        }
+        .setting-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .role-badge-super {
+            background-color: var(--color-red);
+            color: white;
+        }
+        .role-badge-admin {
+            background-color: var(--color-green);
+            color: white;
+        }
+        .role-badge-nutzer {
+            background-color: var(--color-light-blue);
+            color: var(--color-black);
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-4" style="color: var(--color-text-primary);">System-Einstellungen</h1>
+            <p class="text-lg" style="color: var(--color-text-secondary);">Verwalten Sie Systemkonfiguration und Benutzerzuweisungen.</p>
+        </div>
+
+        <!-- Settings Categories -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            
+            <!-- User Management (Admin & Super Admin) -->
+            <div id="user-management-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openUserManagement()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-green);">
+                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
+                            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.998 2.998 0 0 0 16.81 6.5c-1.1 0-2.05.68-2.45 1.63L12 13v5c0 1.1.9 2 2 2s2-.9 2-2v-2h4zm-13.5-6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm1.5 1h-2c-1.38 0-2.5 1.12-2.5 2.5V22h7v-2.5c0-1.38-1.12-2.5-2.5-2.5z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded" style="background-color: var(--color-green); color: white;">ADMIN</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Personenzuweisung</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Benutzer verwalten und Rollen zu Teilprojekten zuweisen</p>
+                <div class="flex items-center text-sm" style="color: var(--color-green);">
+                    <span>Benutzer verwalten</span>
+                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- System Logs (Super Admin only) -->
+            <div id="system-logs-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openSystemLogs()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-orange);">
+                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">System-Logs</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Systemprotokolle und Aktivitätsüberwachung</p>
+                <div class="flex items-center text-sm" style="color: var(--color-orange);">
+                    <span>Protokolle anzeigen</span>
+                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Database Settings (Super Admin only) -->
+            <div id="database-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openDatabaseSettings()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-red);">
+                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
+                            <path d="M12,3C7.58,3 4,4.79 4,7C4,9.21 7.58,11 12,11C16.42,11 20,9.21 20,7C20,4.79 16.42,3 12,3M4,9V12C4,14.21 7.58,16 12,16C16.42,16 20,14.21 20,12V9C20,11.21 16.42,13 12,13C7.58,13 4,11.21 4,9M4,14V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V14C20,16.21 16.42,18 12,18C7.58,18 4,16.21 4,14Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Datenbankeinstellungen</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Datenbankverbindung und Konfiguration verwalten</p>
+                <div class="flex items-center text-sm" style="color: var(--color-red);">
+                    <span>Konfiguration bearbeiten</span>
+                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- System Configuration (Super Admin only) -->
+            <div id="system-config-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openSystemConfig()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-text-secondary);">
+                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
+                            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Systemkonfiguration</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Erweiterte Systemeinstellungen und Parameter</p>
+                <div class="flex items-center text-sm" style="color: var(--color-text-secondary);">
+                    <span>Einstellungen verwalten</span>
+                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Backup & Security (Super Admin only) -->
+            <div id="backup-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openBackupSettings()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Backup & Sicherheit</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Datensicherung und Sicherheitseinstellungen</p>
+                <div class="flex items-center text-sm" style="color: var(--color-light-blue);">
+                    <span>Backup verwalten</span>
+                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- General Settings (All roles) -->
+            <div id="general-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openGeneralSettings()">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-text-secondary);">
+                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
+                            <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-nutzer">ALLE</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Allgemeine Einstellungen</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Profil und Benachrichtigungseinstellungen</p>
+                <div class="flex items-center text-sm" style="color: var(--color-text-secondary);">
+                    <span>Profil bearbeiten</span>
+                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- User Management Section (embedded in settings) -->
+        <div id="user-management-section" class="mt-12 hidden">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold" style="color: var(--color-text-primary);">Personenzuweisung</h2>
+                    <button onclick="closeUserManagement()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="user-management-content">
+                    <!-- Content will be loaded dynamically -->
+                    <div class="text-center py-8">
+                        <p class="text-lg" style="color: var(--color-text-secondary);">Lade Benutzerverwaltung...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentUserRole = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SBV System-Einstellungen geladen');
+            loadUserRole();
+            setupRoleBasedVisibility();
+        });
+
+        // Load current user role and setup visibility
+        async function loadUserRole() {
+            try {
+                const user = sessionStorage.getItem('sbv_user');
+                if (user) {
+                    const userData = JSON.parse(user);
+                    currentUserRole = userData.rolle || 'nutzer';
+                    console.log('Aktuelle Benutzerrolle:', currentUserRole);
+                    setupRoleBasedVisibility();
+                } else {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzerrolle:', error);
+                currentUserRole = 'nutzer';
+                setupRoleBasedVisibility();
+            }
+        }
+
+        // Setup visibility based on user role
+        function setupRoleBasedVisibility() {
+            const superAdminCards = ['system-logs-card', 'database-card', 'system-config-card', 'backup-card'];
+            const adminCards = ['user-management-card'];
+            
+            if (currentUserRole === 'super_admin') {
+                // Super Admin sieht alles
+                console.log('🔴 Super Admin - Alle Einstellungen verfügbar');
+            } else if (currentUserRole === 'admin') {
+                // Admin sieht nur User Management und General Settings
+                superAdminCards.forEach(cardId => {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        card.style.display = 'none';
+                    }
+                });
+                console.log('🟢 Administrator - Eingeschränkte Einstellungen');
+            } else {
+                // Nutzer sieht nur General Settings
+                superAdminCards.concat(adminCards).forEach(cardId => {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        card.style.display = 'none';
+                    }
+                });
+                console.log('🔵 Nutzer - Nur allgemeine Einstellungen');
+            }
+        }
+
+        // Open User Management
+        async function openUserManagement() {
+            if (currentUserRole !== 'super_admin' && currentUserRole !== 'admin') {
+                alert('Zugriff verweigert. Sie benötigen Admin-Berechtigung.');
+                return;
+            }
+
+            const section = document.getElementById('user-management-section');
+            const content = document.getElementById('user-management-content');
+            
+            section.classList.remove('hidden');
+            
+            try {
+                // Load personenzuweisung.html content
+                const response = await fetch('/pages/personenzuweisung.html');
+                const html = await response.text();
+                
+                // Extract body content and inject
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const bodyContent = doc.body.innerHTML;
+                
+                content.innerHTML = bodyContent;
+                
+                // Execute any scripts in the loaded content
+                const scripts = content.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = script.textContent;
+                    document.head.appendChild(newScript);
+                });
+                
+                console.log('Personenzuweisung geladen');
+            } catch (error) {
+                console.error('Fehler beim Laden der Personenzuweisung:', error);
+                content.innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-lg text-red-600">Fehler beim Laden der Benutzerverwaltung</p>
+                        <p class="text-sm" style="color: var(--color-text-secondary);">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Close User Management
+        function closeUserManagement() {
+            document.getElementById('user-management-section').classList.add('hidden');
+        }
+
+        // Other settings functions
+        function openSystemLogs() {
+            if (currentUserRole !== 'super_admin') {
+                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
+                return;
+            }
+            // Navigate to system logs (placeholder)
+            navigateTo('systemlogs');
+        }
+
+        function openDatabaseSettings() {
+            if (currentUserRole !== 'super_admin') {
+                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
+                return;
+            }
+            alert('Datenbankeinstellungen - Coming Soon');
+        }
+
+        function openSystemConfig() {
+            if (currentUserRole !== 'super_admin') {
+                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
+                return;
+            }
+            alert('Systemkonfiguration - Coming Soon');
+        }
+
+        function openBackupSettings() {
+            if (currentUserRole !== 'super_admin') {
+                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
+                return;
+            }
+            alert('Backup & Sicherheit - Coming Soon');
+        }
+
+        function openGeneralSettings() {
+            alert('Allgemeine Einstellungen - Coming Soon');
+        }
+    </script>
+</body>
+</html>

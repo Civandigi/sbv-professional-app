@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berichte - SBV Gesuch-Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        :root {
+            --color-black: #000000;
+            --color-light-blue: #A4D2F4;
+            --color-green: #6BAF38;
+            --color-background: #F8FAFC;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-card-background: #FFFFFF;
+        }
+    </style>
+</head>
+<body class="bg-[var(--color-background)] p-6">
+    <div>
+        <h1 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
+            <svg class="inline w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+            </svg>
+            Berichte & Analysen
+        </h1>
+        
+        <!-- Report Generation -->
+        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold text-[var(--color-text-primary)] mb-4">Neuen Bericht erstellen</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select class="border rounded-lg px-3 py-2">
+                    <option>Berichtstyp wählen</option>
+                    <option>Monatsbericht</option>
+                    <option>Quartalsbericht</option>
+                    <option>Jahresbericht</option>
+                    <option>Gesuch-Analyse</option>
+                </select>
+                <input type="date" class="border rounded-lg px-3 py-2" value="2025-07-21">
+                <button class="bg-[var(--color-light-blue)] text-[var(--color-black)] px-4 py-2 rounded-lg hover:bg-opacity-80">
+                    Bericht generieren
+                </button>
+            </div>
+        </div>
+
+        <!-- Available Reports -->
+        <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold text-[var(--color-text-primary)] mb-4">Verfügbare Berichte</h2>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 border rounded-lg">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                        </svg>
+                        <div>
+                            <h3 class="font-medium text-[var(--color-text-primary)]">Quartalsbericht Q2 2025</h3>
+                            <p class="text-sm text-[var(--color-text-secondary)]">Erstellt am 21.07.2025 • 47 Gesuche analysiert</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="text-blue-600 hover:text-blue-800">Ansehen</button>
+                        <button class="text-gray-600 hover:text-gray-800">Download</button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 border rounded-lg">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                        </svg>
+                        <div>
+                            <h3 class="font-medium text-[var(--color-text-primary)]">Monatsbericht Juni 2025</h3>
+                            <p class="text-sm text-[var(--color-text-secondary)]">Erstellt am 01.07.2025 • 18 Gesuche analysiert</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="text-blue-600 hover:text-blue-800">Ansehen</button>
+                        <button class="text-gray-600 hover:text-gray-800">Download</button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 border rounded-lg">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                        </svg>
+                        <div>
+                            <h3 class="font-medium text-[var(--color-text-primary)]">Gesuch-Analyse Mai 2025</h3>
+                            <p class="text-sm text-[var(--color-text-secondary)]">Erstellt am 15.06.2025 • Erfolgsquote 76%</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="text-blue-600 hover:text-blue-800">Ansehen</button>
+                        <button class="text-gray-600 hover:text-gray-800">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-[var(--color-card-background)] rounded-lg shadow-sm p-6 text-center">
+                <svg class="w-8 h-8 text-green-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                <p class="text-2xl font-bold text-green-600">23</p>
+                <p class="text-sm text-gray-600">Generierte Berichte</p>
+            </div>
+            <div class="bg-[var(--color-card-background)] rounded-lg shadow-sm p-6 text-center">
+                <svg class="w-8 h-8 text-blue-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <p class="text-2xl font-bold text-blue-600">76%</p>
+                <p class="text-sm text-gray-600">Erfolgsquote</p>
+            </div>
+            <div class="bg-[var(--color-card-background)] rounded-lg shadow-sm p-6 text-center">
+                <svg class="w-8 h-8 text-yellow-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <p class="text-2xl font-bold text-yellow-600">12.5</p>
+                <p class="text-sm text-gray-600">Ø Bearbeitungszeit (Tage)</p>
+            </div>
+            <div class="bg-[var(--color-card-background)] rounded-lg shadow-sm p-6 text-center">
+                <svg class="w-8 h-8 text-purple-600 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                </svg>
+                <p class="text-2xl font-bold text-purple-600">CHF 1.8M</p>
+                <p class="text-sm text-gray-600">Ausbezahlt YTD</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

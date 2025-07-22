@@ -5,14 +5,17 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'sbv-super-secret-2025-key';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -40,6 +43,9 @@ async function createSuperAdminUser() {
     const superAdminPassword = 'SBV-Admin-2025-SecurePass!';
     
     try {
+        // First, ensure the table has the required columns
+        await ensureUserTableSchema();
+        
         // Check if super admin already exists in sbv_benutzer table
         const existingUser = await pool.query(
             'SELECT id FROM sbv_benutzer WHERE email = $1',
@@ -47,21 +53,97 @@ async function createSuperAdminUser() {
         );
         
         if (existingUser.rows.length === 0) {
-            // Create super admin user (simplified without status column)
+            // Create super admin user with hashed password
+            const hashedPassword = await bcrypt.hash(superAdminPassword, 12);
+            
             await pool.query(
-                `INSERT INTO sbv_benutzer (name, email) 
-                 VALUES ($1, $2)`,
-                ['Super Admin - Digitale Rakete', superAdminEmail]
+                `INSERT INTO sbv_benutzer (name, email, password_hash, rolle) 
+                 VALUES ($1, $2, $3, $4)`,
+                ['Super Admin - Digitale Rakete', superAdminEmail, hashedPassword, 'super_admin']
             );
             console.log('✅ Super Admin User created:');
             console.log(`   📧 Email: ${superAdminEmail}`);
             console.log(`   🔒 Password: ${superAdminPassword}`);
-            console.log('   👑 Role: admin');
+            console.log('   👑 Role: super_admin');
         } else {
             console.log('ℹ️  Super Admin User already exists');
+            
+            // Update existing user with password and role if missing
+            const userData = await pool.query(
+                'SELECT password_hash, rolle FROM sbv_benutzer WHERE email = $1',
+                [superAdminEmail]
+            );
+            
+            if (userData.rows.length > 0) {
+                const user = userData.rows[0];
+                if (!user.password_hash) {
+                    const hashedPassword = await bcrypt.hash(superAdminPassword, 12);
+                    await pool.query(
+                        'UPDATE sbv_benutzer SET password_hash = $1, rolle = $2 WHERE email = $3',
+                        [hashedPassword, 'super_admin', superAdminEmail]
+                    );
+                    console.log('✅ Super Admin password and role updated');
+                }
+            }
         }
     } catch (error) {
-        console.error('❌ Error with existing table:', error.message);
+        console.error('❌ Error creating super admin:', error.message);
+    }
+}
+
+// Ensure user table has required columns
+async function ensureUserTableSchema() {
+    try {
+        // Add password_hash column if it doesn't exist
+        await pool.query(`
+            ALTER TABLE sbv_benutzer 
+            ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)
+        `);
+        
+        // Add rolle column if it doesn't exist
+        await pool.query(`
+            ALTER TABLE sbv_benutzer 
+            ADD COLUMN IF NOT EXISTS rolle VARCHAR(50) DEFAULT 'user'
+        `);
+        
+        // Add additional columns for user management
+        await pool.query(`
+            ALTER TABLE sbv_benutzer 
+            ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'aktiv',
+            ADD COLUMN IF NOT EXISTS letzter_login TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS erstellt_am TIMESTAMP DEFAULT NOW(),
+            ADD COLUMN IF NOT EXISTS aktualisiert_am TIMESTAMP DEFAULT NOW()
+        `);
+        
+        console.log('✅ User table schema updated with role management columns');
+        await pool.query(`
+            ALTER TABLE sbv_gesuche 
+            ADD COLUMN IF NOT EXISTS gesuch_typ VARCHAR(50) DEFAULT 'partner',
+            ADD COLUMN IF NOT EXISTS finanz_betrag DECIMAL(15,2),
+            ADD COLUMN IF NOT EXISTS genehmigt BOOLEAN DEFAULT false,
+            ADD COLUMN IF NOT EXISTS genehmigt_am TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS teilprojekte TEXT[]
+        `);
+        
+        // Create teilprojekte table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS sbv_teilprojekte (
+                id SERIAL PRIMARY KEY,
+                gesuch_id INTEGER REFERENCES sbv_gesuche(id),
+                bericht_id INTEGER REFERENCES sbv_berichte(id),
+                name VARCHAR(255) NOT NULL,
+                beschreibung TEXT,
+                budget_soll DECIMAL(15,2),
+                budget_ist DECIMAL(15,2),
+                status VARCHAR(50) DEFAULT 'geplant',
+                jahr INTEGER NOT NULL,
+                erstellt_am TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        console.log('✅ User table schema updated');
+    } catch (error) {
+        console.error('❌ Error updating user table schema:', error.message);
     }
 }
 
@@ -101,15 +183,477 @@ pool.connect((err, client, done) => {
 
 // Serve main application
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'sbv-professional-dashboard.html'));
+    res.sendFile(path.join(__dirname, '../frontend/login.html'));
+});
+
+// Serve dashboard (protected)
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dashboard.html'));
+});
+
+// Authentication Routes
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email und Passwort sind erforderlich'
+            });
+        }
+
+        // Check if user exists in database
+        const userResult = await pool.query(
+            'SELECT * FROM sbv_benutzer WHERE email = $1',
+            [email]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'Ungültige Anmeldedaten'
+            });
+        }
+
+        const user = userResult.rows[0];
+
+        // For super admin, check password (if no password_hash, use direct comparison for initial setup)
+        let isValidPassword = false;
+        
+        if (user.password_hash) {
+            // Use bcrypt for hashed passwords
+            isValidPassword = await bcrypt.compare(password, user.password_hash);
+        } else if (email === 'superadmin@digitale-rakete.ch' && password === 'SBV-Admin-2025-SecurePass!') {
+            // Fallback for initial super admin login
+            isValidPassword = true;
+            
+            // Hash and update password in database
+            const hashedPassword = await bcrypt.hash(password, 12);
+            await pool.query(
+                'UPDATE sbv_benutzer SET password_hash = $1, rolle = $2 WHERE id = $3',
+                [hashedPassword, 'super_admin', user.id]
+            );
+        }
+
+        if (!isValidPassword) {
+            return res.status(401).json({
+                success: false,
+                message: 'Ungültige Anmeldedaten'
+            });
+        }
+        
+        // Check if user account is active
+        if (user.status && user.status === 'inaktiv') {
+            return res.status(403).json({
+                success: false,
+                message: 'Ihr Konto ist deaktiviert. Wenden Sie sich an einen Administrator.'
+            });
+        }
+        
+        // Update last login timestamp
+        await pool.query(
+            'UPDATE sbv_benutzer SET letzter_login = NOW() WHERE id = $1',
+            [user.id]
+        );
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { 
+                userId: user.id,
+                email: user.email,
+                role: user.rolle || 'super_admin'
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        // Return user info (without password)
+        const userResponse = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            rolle: user.rolle || 'super_admin'
+        };
+        
+        console.log(`🔐 Benutzer angemeldet: ${user.name} (${user.email}) - Rolle: ${user.rolle}`);
+
+        res.json({
+            success: true,
+            message: 'Erfolgreich angemeldet',
+            user: userResponse,
+            token: token
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Serverfehler bei der Anmeldung'
+        });
+    }
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Erfolgreich abgemeldet'
+    });
+});
+
+// Middleware to check authentication
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Zugriff verweigert - Token erforderlich'
+        });
+    }
+
+    jwt.verify(token, JWT_SECRET, async (err, user) => {
+        if (err) {
+            return res.status(403).json({
+                success: false,
+                message: 'Ungültiger Token'
+            });
+        }
+        
+        try {
+            // Get current user data from database
+            const userResult = await pool.query(
+                'SELECT id, name, email, rolle, status FROM sbv_benutzer WHERE id = $1',
+                [user.userId]
+            );
+            
+            if (userResult.rows.length === 0) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Benutzer nicht mehr vorhanden'
+                });
+            }
+            
+            const currentUser = userResult.rows[0];
+            
+            // Check if user is still active
+            if (currentUser.status === 'inaktiv') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Ihr Konto wurde deaktiviert'
+                });
+            }
+            
+            // Attach current user info to request
+            req.user = {
+                id: currentUser.id,
+                userId: currentUser.id,
+                name: currentUser.name,
+                email: currentUser.email,
+                rolle: currentUser.rolle
+            };
+            
+            next();
+        } catch (dbError) {
+            console.error('Database error in auth middleware:', dbError);
+            return res.status(500).json({
+                success: false,
+                message: 'Serverfehler bei der Authentifizierung'
+            });
+        }
+    });
+}
+
+// Role-based middleware factory
+function requireRole(roles) {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Nicht authentifiziert'
+            });
+        }
+        
+        const userRole = req.user.rolle;
+        const allowedRoles = Array.isArray(roles) ? roles : [roles];
+        
+        if (!allowedRoles.includes(userRole)) {
+            return res.status(403).json({
+                success: false,
+                message: `Zugriff verweigert. Erforderliche Rolle: ${allowedRoles.join(' oder ')}`
+            });
+        }
+        
+        next();
+    };
+}
+
+// Check current user
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+    res.json({
+        success: true,
+        user: req.user
+    });
 });
 
 // API Routes
 
-// Get all users (Benutzer)
+// ========== USER MANAGEMENT API ENDPOINTS ==========
+
+// Get all users for admin/super_admin (ohne password_hash)
+app.get('/api/users', authenticateToken, async (req, res) => {
+    try {
+        // Check if user has admin privileges
+        if (req.user.rolle !== 'super_admin' && req.user.rolle !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'Zugriff verweigert. Admin-Berechtigung erforderlich.'
+            });
+        }
+        
+        const result = await pool.query(`
+            SELECT id, name, email, rolle, status, 
+                   letzter_login, erstellt_am, aktualisiert_am
+            FROM sbv_benutzer 
+            ORDER BY id
+        `);
+        
+        res.json({
+            success: true,
+            data: result.rows,
+            count: result.rows.length
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Laden der Benutzer'
+        });
+    }
+});
+
+// Create new user
+app.post('/api/users', authenticateToken, async (req, res) => {
+    try {
+        // Check if user has admin privileges
+        if (req.user.rolle !== 'super_admin' && req.user.rolle !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'Zugriff verweigert. Admin-Berechtigung erforderlich.'
+            });
+        }
+        
+        const { name, email, rolle, status = 'aktiv' } = req.body;
+        
+        if (!name || !email || !rolle) {
+            return res.status(400).json({
+                success: false,
+                error: 'Name, E-Mail und Rolle sind erforderlich.'
+            });
+        }
+        
+        // Check if email already exists
+        const existingUser = await pool.query('SELECT id FROM sbv_benutzer WHERE email = $1', [email]);
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'E-Mail-Adresse bereits vergeben.'
+            });
+        }
+        
+        // Generate temporary password
+        const tempPassword = 'SBV-' + Math.random().toString(36).substring(2, 12);
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        
+        const result = await pool.query(`
+            INSERT INTO sbv_benutzer (name, email, password_hash, rolle, status, erstellt_am) 
+            VALUES ($1, $2, $3, $4, $5, NOW()) 
+            RETURNING id, name, email, rolle, status, erstellt_am
+        `, [name, email, hashedPassword, rolle, status]);
+        
+        console.log(`👤 Neuer Benutzer erstellt: ${name} (${email}) - Rolle: ${rolle}`);
+        
+        res.json({
+            success: true,
+            data: result.rows[0],
+            tempPassword: tempPassword,
+            message: 'Benutzer erfolgreich erstellt'
+        });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Erstellen des Benutzers'
+        });
+    }
+});
+
+// Update existing user
+app.put('/api/users/:id', authenticateToken, async (req, res) => {
+    try {
+        // Check if user has admin privileges
+        if (req.user.rolle !== 'super_admin' && req.user.rolle !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'Zugriff verweigert. Admin-Berechtigung erforderlich.'
+            });
+        }
+        
+        const userId = parseInt(req.params.id);
+        const { name, email, rolle, status } = req.body;
+        
+        if (!name || !email || !rolle) {
+            return res.status(400).json({
+                success: false,
+                error: 'Name, E-Mail und Rolle sind erforderlich.'
+            });
+        }
+        
+        // Check if email is already taken by another user
+        const existingUser = await pool.query(
+            'SELECT id FROM sbv_benutzer WHERE email = $1 AND id != $2', 
+            [email, userId]
+        );
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'E-Mail-Adresse bereits vergeben.'
+            });
+        }
+        
+        const result = await pool.query(`
+            UPDATE sbv_benutzer 
+            SET name = $1, email = $2, rolle = $3, status = $4, aktualisiert_am = NOW()
+            WHERE id = $5 
+            RETURNING id, name, email, rolle, status, aktualisiert_am
+        `, [name, email, rolle, status, userId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Benutzer nicht gefunden.'
+            });
+        }
+        
+        console.log(`👤 Benutzer aktualisiert: ${name} (ID: ${userId})`);
+        
+        res.json({
+            success: true,
+            data: result.rows[0],
+            message: 'Benutzer erfolgreich aktualisiert'
+        });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Aktualisieren des Benutzers'
+        });
+    }
+});
+
+// Delete user
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
+    try {
+        // Only super_admin can delete users
+        if (req.user.rolle !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'Zugriff verweigert. Nur Super Administratoren können Benutzer löschen.'
+            });
+        }
+        
+        const userId = parseInt(req.params.id);
+        
+        // Prevent self-deletion
+        if (userId === req.user.id) {
+            return res.status(400).json({
+                success: false,
+                error: 'Sie können sich nicht selbst löschen.'
+            });
+        }
+        
+        // Check if user exists
+        const userCheck = await pool.query('SELECT name FROM sbv_benutzer WHERE id = $1', [userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Benutzer nicht gefunden.'
+            });
+        }
+        
+        // Delete user
+        await pool.query('DELETE FROM sbv_benutzer WHERE id = $1', [userId]);
+        
+        console.log(`👤 Benutzer gelöscht: ${userCheck.rows[0].name} (ID: ${userId})`);
+        
+        res.json({
+            success: true,
+            message: 'Benutzer erfolgreich gelöscht'
+        });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Löschen des Benutzers'
+        });
+    }
+});
+
+// Get user activity logs
+app.get('/api/users/activities', authenticateToken, async (req, res) => {
+    try {
+        // Check if user has admin privileges
+        if (req.user.rolle !== 'super_admin' && req.user.rolle !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'Zugriff verweigert. Admin-Berechtigung erforderlich.'
+            });
+        }
+        
+        // Get recent login activities
+        const activities = await pool.query(`
+            SELECT name, letzter_login, rolle
+            FROM sbv_benutzer 
+            WHERE letzter_login IS NOT NULL
+            ORDER BY letzter_login DESC 
+            LIMIT 10
+        `);
+        
+        const formattedActivities = activities.rows.map(activity => ({
+            user: activity.name,
+            action: 'hat sich angemeldet',
+            time: activity.letzter_login ? new Date(activity.letzter_login).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : 'Nie',
+            role: activity.rolle
+        }));
+        
+        res.json({
+            success: true,
+            data: formattedActivities
+        });
+    } catch (error) {
+        console.error('Error fetching user activities:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Laden der Aktivitäten'
+        });
+    }
+});
+
+// ========== LEGACY ENDPOINTS (für Kompatibilität) ==========
+
+// Get all users (Benutzer) - Legacy endpoint
 app.get('/api/benutzer', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM sbv_benutzer ORDER BY id');
+        const result = await pool.query(`
+            SELECT id, name, email, rolle, status, 
+                   letzter_login, erstellt_am, aktualisiert_am
+            FROM sbv_benutzer 
+            ORDER BY id
+        `);
         res.json({
             success: true,
             data: result.rows,
@@ -124,13 +668,41 @@ app.get('/api/benutzer', async (req, res) => {
     }
 });
 
-// Get all applications (Gesuche)
+// Get all applications (Gesuche) with filter options
 app.get('/api/gesuche', async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT * FROM sbv_gesuche 
-            ORDER BY id DESC
-        `);
+        const { jahr, typ, status, genehmigt } = req.query;
+        let query = 'SELECT * FROM sbv_gesuche WHERE 1=1';
+        const params = [];
+        let paramCount = 0;
+
+        if (jahr) {
+            paramCount++;
+            query += ` AND jahr = $${paramCount}`;
+            params.push(jahr);
+        }
+
+        if (typ) {
+            paramCount++;
+            query += ` AND gesuch_typ = $${paramCount}`;
+            params.push(typ);
+        }
+
+        if (status) {
+            paramCount++;
+            query += ` AND status = $${paramCount}`;
+            params.push(status);
+        }
+
+        if (genehmigt !== undefined) {
+            paramCount++;
+            query += ` AND genehmigt = $${paramCount}`;
+            params.push(genehmigt === 'true');
+        }
+
+        query += ' ORDER BY id DESC';
+        
+        const result = await pool.query(query, params);
         
         res.json({
             success: true,
@@ -141,7 +713,70 @@ app.get('/api/gesuche', async (req, res) => {
         console.error('Error fetching gesuche:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to fetch applications'
+            message: 'Fehler beim Laden der Gesuche',
+            error: error.message
+        });
+    }
+});
+
+// Get approved Gesuche for Report creation
+app.get('/api/gesuche/approved', async (req, res) => {
+    try {
+        const { jahr } = req.query;
+        let query = `
+            SELECT g.*, t.name as teilprojekt_name, t.id as teilprojekt_id,
+                   t.beschreibung as teilprojekt_beschreibung, 
+                   t.budget_soll, t.budget_ist, t.status as teilprojekt_status
+            FROM sbv_gesuche g 
+            LEFT JOIN sbv_teilprojekte t ON g.id = t.gesuch_id
+            WHERE g.genehmigt = true
+        `;
+        const params = [];
+
+        if (jahr) {
+            query += ' AND g.jahr = $1';
+            params.push(jahr);
+        }
+
+        query += ' ORDER BY g.id DESC, t.id ASC';
+        
+        const result = await pool.query(query, params);
+        
+        // Group results by Gesuch
+        const gesucheMap = new Map();
+        result.rows.forEach(row => {
+            if (!gesucheMap.has(row.id)) {
+                gesucheMap.set(row.id, {
+                    ...row,
+                    teilprojekte: []
+                });
+            }
+            
+            if (row.teilprojekt_id) {
+                gesucheMap.get(row.id).teilprojekte.push({
+                    id: row.teilprojekt_id,
+                    name: row.teilprojekt_name,
+                    beschreibung: row.teilprojekt_beschreibung,
+                    budget_soll: row.budget_soll,
+                    budget_ist: row.budget_ist,
+                    status: row.teilprojekt_status
+                });
+            }
+        });
+        
+        const gesuche = Array.from(gesucheMap.values());
+        
+        res.json({
+            success: true,
+            data: gesuche,
+            count: gesuche.length
+        });
+    } catch (error) {
+        console.error('Error fetching approved gesuche:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Fehler beim Laden der genehmigten Gesuche',
+            error: error.message
         });
     }
 });
@@ -280,6 +915,207 @@ app.get('/api/dokumente', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Failed to fetch documents'
+        });
+    }
+});
+
+// Upload document with AI analysis for Archiv
+app.post('/api/archiv/upload', upload.single('document'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'Keine Datei hochgeladen'
+            });
+        }
+        
+        const { jahr, typ } = req.body;
+        
+        // TODO: Hier würde KI-Analyse implementiert werden
+        // Für jetzt erstellen wir Mock-Teilprojekte basierend auf Dateiname
+        const extractedData = await analyzeDocument(req.file);
+        
+        // Speichere Dokument
+        const docResult = await pool.query(`
+            INSERT INTO sbv_dokumente (gesuch_id, dateiname, dateipfad, typ, groesse, hochgeladen_am)
+            VALUES ($1, $2, $3, $4, $5, NOW())
+            RETURNING *
+        `, [
+            null, // Kein spezifisches Gesuch 
+            req.file.originalname, 
+            req.file.path, 
+            typ || 'archiv', 
+            req.file.size
+        ]);
+        
+        // Erstelle Teilprojekte basierend auf Analyse
+        if (extractedData.teilprojekte && extractedData.teilprojekte.length > 0) {
+            for (const tp of extractedData.teilprojekte) {
+                await pool.query(`
+                    INSERT INTO sbv_teilprojekte (gesuch_id, name, beschreibung, budget_soll, jahr, status)
+                    VALUES ($1, $2, $3, $4, $5, 'extrahiert')
+                `, [null, tp.name, tp.beschreibung, tp.budget, jahr]);
+            }
+        }
+        
+        res.status(201).json({
+            success: true,
+            data: {
+                document: docResult.rows[0],
+                extractedData: extractedData
+            },
+            message: 'Dokument erfolgreich analysiert und hochgeladen'
+        });
+    } catch (error) {
+        console.error('Error uploading to archiv:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Upload ins Archiv',
+            message: error.message
+        });
+    }
+});
+
+// Mock AI document analysis function
+async function analyzeDocument(file) {
+    // Simuliert KI-Analyse basierend auf Dateiname und Typ
+    const filename = file.originalname.toLowerCase();
+    const teilprojekte = [];
+    
+    if (filename.includes('finanzgesuch') || filename.includes('bericht')) {
+        // Simuliere extrahierte Teilprojekte
+        if (filename.includes('2024')) {
+            teilprojekte.push({
+                name: "Digitalisierung Bauverband",
+                beschreibung: "Modernisierung der IT-Infrastruktur",
+                budget: 150000
+            });
+            teilprojekte.push({
+                name: "Weiterbildung Mitarbeiter", 
+                beschreibung: "Schulungen für neue Technologien",
+                budget: 75000
+            });
+        }
+        
+        if (filename.includes('2023')) {
+            teilprojekte.push({
+                name: "Nachhaltigkeit Initiative",
+                beschreibung: "Förderung nachhaltiger Bautechniken",
+                budget: 200000
+            });
+        }
+    }
+    
+    return {
+        erkannte_jahre: filename.includes('2024') ? ['2024'] : ['2023'],
+        gesuch_typ: filename.includes('finanz') ? 'finanzgesuch' : 'partner',
+        teilprojekte: teilprojekte,
+        ai_confidence: 0.85
+    };
+}
+
+// Get Teilprojekte
+app.get('/api/teilprojekte', async (req, res) => {
+    try {
+        const { jahr, gesuch_id, bericht_id } = req.query;
+        let query = 'SELECT * FROM sbv_teilprojekte WHERE 1=1';
+        const params = [];
+        let paramCount = 0;
+        
+        if (jahr) {
+            paramCount++;
+            query += ` AND jahr = $${paramCount}`;
+            params.push(jahr);
+        }
+        
+        if (gesuch_id) {
+            paramCount++;
+            query += ` AND gesuch_id = $${paramCount}`;
+            params.push(gesuch_id);
+        }
+        
+        if (bericht_id) {
+            paramCount++;
+            query += ` AND bericht_id = $${paramCount}`;
+            params.push(bericht_id);
+        }
+        
+        query += ' ORDER BY id DESC';
+        
+        const result = await pool.query(query, params);
+        
+        res.json({
+            success: true,
+            data: result.rows,
+            count: result.rows.length
+        });
+    } catch (error) {
+        console.error('Error fetching teilprojekte:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Laden der Teilprojekte'
+        });
+    }
+});
+
+// Create Report from approved Gesuch
+app.post('/api/berichte/from-gesuch', async (req, res) => {
+    try {
+        const { gesuch_id, jahr, benutzer_id } = req.body;
+        
+        // Hole genehmigtes Gesuch mit Teilprojekten
+        const gesuchResult = await pool.query(`
+            SELECT g.*, t.id as tp_id, t.name as tp_name, t.beschreibung as tp_beschreibung,
+                   t.budget_soll, t.budget_ist, t.status as tp_status
+            FROM sbv_gesuche g 
+            LEFT JOIN sbv_teilprojekte t ON g.id = t.gesuch_id
+            WHERE g.id = $1 AND g.genehmigt = true
+        `, [gesuch_id]);
+        
+        if (gesuchResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Genehmigtes Gesuch nicht gefunden'
+            });
+        }
+        
+        const gesuch = gesuchResult.rows[0];
+        
+        // Erstelle neuen Bericht
+        const berichtResult = await pool.query(`
+            INSERT INTO sbv_berichte (titel, jahr, beschreibung, benutzer_id, status, erstellt_am)
+            VALUES ($1, $2, $3, $4, 'entwurf', NOW())
+            RETURNING *
+        `, [
+            `Bericht: ${gesuch.titel}`,
+            jahr || gesuch.jahr,
+            `Automatisch generiert aus Gesuch: ${gesuch.titel}`,
+            benutzer_id
+        ]);
+        
+        const bericht = berichtResult.rows[0];
+        
+        // Verknüpfe Teilprojekte mit dem neuen Bericht
+        for (const row of gesuchResult.rows) {
+            if (row.tp_id) {
+                await pool.query(`
+                    UPDATE sbv_teilprojekte 
+                    SET bericht_id = $1 
+                    WHERE id = $2
+                `, [bericht.id, row.tp_id]);
+            }
+        }
+        
+        res.status(201).json({
+            success: true,
+            data: bericht,
+            message: 'Bericht erfolgreich aus Gesuch erstellt'
+        });
+    } catch (error) {
+        console.error('Error creating report from gesuch:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Fehler beim Erstellen des Berichts'
         });
     }
 });

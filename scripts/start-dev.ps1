@@ -52,7 +52,7 @@ Write-Host "📊 Frontend: http://localhost:3000" -ForegroundColor Cyan
 Write-Host "🔌 API: http://localhost:3000/api" -ForegroundColor Cyan
 Write-Host "👑 Super Admin: superadmin@digitale-rakete.ch" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Drücken Sie Strg+C zum Beenden..." -ForegroundColor Gray
+Write-Host "Druecken Sie Strg+C zum Beenden..." -ForegroundColor Gray
 
 # Starte Server
 node src/backend/server.js

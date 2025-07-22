@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>SBV Gesuch-Tool - Rapport</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+        :root {
+            --color-primary: #A4D2F4;
+            --color-secondary: #6BAF38;
+            --color-black: #000000;
+            --color-background: #F8FAFC;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-border: #E2E8F0;
+            --color-yellow: #FEF3C7;
+            --color-gray-field: #F3F4F6;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        /* Feld-Styling */
+        .field-system {
+            @apply bg-[var(--color-gray-field)] border-gray-300 text-gray-700 cursor-not-allowed;
+        }
+        
+        .field-editable {
+            @apply bg-[var(--color-yellow)] border-yellow-300 focus:border-yellow-500 focus:ring-yellow-200;
+        }
+        
+        .teilprojekt-card {
+            @apply bg-white rounded-xl shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow;
+        }
+        
+        .section-header {
+            @apply text-lg font-semibold text-[var(--color-text-primary)] mb-4;
+        }
+        
+        .status-badge {
+            @apply px-3 py-1 text-sm font-medium rounded-full;
+        }
+        
+        .status-aktiv {
+            @apply bg-green-100 text-green-800;
+        }
+        
+        .status-pause {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        
+        .status-abgeschlossen {
+            @apply bg-blue-100 text-blue-800;
+        }
+    </style>
+</head>
+<body class="bg-[var(--color-background)] text-[var(--color-text-primary)] min-h-screen">
+<div class="p-8">
+    <!-- Page Title and Actions -->
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Rapport</h1>
+        <button id="new-rapport-btn" class="bg-[var(--color-secondary)] text-white font-semibold py-2 px-6 rounded-full hover:opacity-90 transition-opacity">
+            Neuer Rapport
+        </button>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="w-full">
+        <!-- Original Rapport Liste -->
+        <div id="rapport-list" class="bg-white rounded-2xl shadow-sm p-6 w-full">
+            <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">Rapport Verwaltung</h2>
+            
+            <!-- Filters and Search -->
+            <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                <div class="flex-1">
+                    <input type="text" placeholder="Rapport suchen..." 
+                           class="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
+                </div>
+                <div class="flex gap-3">
+                    <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <option>Alle Status</option>
+                        <option>Abgeschlossen</option>
+                        <option>In Bearbeitung</option>
+                        <option>Ausstehend</option>
+                        <option>Entwurf</option>
+                    </select>
+                    <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <option>Alle Jahre</option>
+                        <option>2025</option>
+                        <option>2024</option>
+                        <option>2023</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Reports Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-[var(--color-border)]">
+                            <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Rapport Titel</th>
+                            <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Status</th>
+                            <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Erstellt am</th>
+                            <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Autor</th>
+                            <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Monatlicher Fortschrittsbericht Juli 2025</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-aktiv">Abgeschlossen</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">20.07.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Anna Schmidt</td>
+                            <td class="py-4 px-4">
+                                <a class="text-[var(--color-primary)] font-semibold hover:underline cursor-pointer" onclick="viewReport('Monatlicher Fortschrittsbericht Juli 2025')">Rapport anzeigen</a>
+                            </td>
+                        </tr>
+                        
+                        <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Quartalsfinanzbericht Q2 2025</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-pause">In Bearbeitung</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">15.07.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Max Mustermann</td>
+                            <td class="py-4 px-4">
+                                <div class="flex gap-2">
+                                    <a class="text-[var(--color-primary)] font-semibold hover:underline" href="#" onclick="editReport('Quartalsfinanzbericht Q2 2025')">Bearbeiten</a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Jahres-Compliance-Bericht 2024</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-pause">Ausstehende Prüfung</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">10.07.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Peter Müller</td>
+                            <td class="py-4 px-4">
+                                <a class="text-[var(--color-primary)] font-semibold hover:underline cursor-pointer" onclick="viewReport('Jahres-Compliance-Bericht 2024')">Rapport anzeigen</a>
+                            </td>
+                        </tr>
+
+                        <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Projekt Status Update - Digitalisierung</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-abgeschlossen">Genehmigt</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">05.07.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Sarah Weber</td>
+                            <td class="py-4 px-4">
+                                <a class="text-[var(--color-primary)] font-semibold hover:underline cursor-pointer" onclick="viewReport('Projekt Status Update - Digitalisierung')">Rapport anzeigen</a>
+                            </td>
+                        </tr>
+
+                        <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Ressourcenzuteilungsbericht</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-pause">Entwurf</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">30.06.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Thomas Schneider</td>
+                            <td class="py-4 px-4">
+                                <a class="text-[var(--color-primary)] font-semibold hover:underline cursor-pointer" onclick="viewReport('Ressourcenzuteilungsbericht')">Rapport anzeigen</a>
+                            </td>
+                        </tr>
+
+                        <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Mitarbeiter Zufriedenheitsumfrage Q1</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-aktiv">Abgeschlossen</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">28.06.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Lisa Müller</td>
+                            <td class="py-4 px-4">
+                                <a class="text-[var(--color-primary)] font-semibold hover:underline cursor-pointer" onclick="viewReport('Mitarbeiter Zufriedenheitsumfrage Q1')">Rapport anzeigen</a>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 font-medium text-[var(--color-text-primary)]">Technologie-Trend-Analyse 2025</td>
+                            <td class="py-4 px-4">
+                                <span class="status-badge status-pause">In Bearbeitung</span>
+                            </td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">25.06.2025</td>
+                            <td class="py-4 px-4 text-[var(--color-text-secondary)]">Daniel Kaufmann</td>
+                            <td class="py-4 px-4">
+                                <a class="text-[var(--color-primary)] font-semibold hover:underline cursor-pointer" onclick="viewReport('Technologie-Trend-Analyse 2025')">Rapport anzeigen</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-600">12</div>
+                    <div class="text-sm text-blue-800">Gesamt Rapporte</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-green-600">8</div>
+                    <div class="text-sm text-green-800">Abgeschlossen</div>
+                </div>
+                <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-yellow-600">2</div>
+                    <div class="text-sm text-yellow-800">In Bearbeitung</div>
+                </div>
+                <div class="bg-orange-50 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-orange-600">2</div>
+                    <div class="text-sm text-orange-800">Ausstehend</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Neues Rapport Formular (initially hidden) -->
+        <div id="new-rapport-form" class="bg-white rounded-2xl shadow-sm p-6 w-full hidden">
+            <!-- Header mit Back-Button -->
+            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-[var(--color-border)]">
+                <button id="back-to-list" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div>
+                    <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Neuer Rapport erstellen</h2>
+                    <p class="text-[var(--color-text-secondary)]">Erstellen Sie einen neuen Teilprojekt-basierten Rapport</p>
+                </div>
+                <div class="ml-auto flex items-center gap-3">
+                    <button class="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-gray-50 transition-colors">
+                        Entwurf speichern
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-white bg-[var(--color-secondary)] rounded-lg hover:opacity-90 transition-opacity">
+                        Rapport fertigstellen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rapport Formular Content -->
+            <div class="space-y-8">
+                <!-- Teilprojekt Auswahl -->
+                <div>
+                    <div class="section-header">
+                        Teilprojekt Informationen
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Teilprojekt auswählen</label>
+                            <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <option value="">Teilprojekt wählen...</option>
+                                <option value="tp-digitale-medien">TP 2 - DigitaleMedien</option>
+                                <option value="tp-server-infrastruktur">TP 1 - Server-Infrastruktur</option>
+                                <option value="tp-mitarbeiter-schulung">TP 3 - Mitarbeiter-Schulungen</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Rapport Titel</label>
+                            <input type="text" placeholder="z.B. Monatsbericht Juli 2025" class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Übergeordnetes Projekt</label>
+                            <input type="text" value="Digitalisierung 2025" readonly class="w-full p-3 border rounded-lg field-system">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Verantwortliche Person</label>
+                            <input type="text" value="Anna Schmidt" readonly class="w-full p-3 border rounded-lg field-system">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Beschreibung & Ziele -->
+                <div>
+                    <div class="section-header">
+                        Beschreibung & Ziele
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Beschreibung</label>
+                            <textarea rows="4" readonly class="w-full p-3 border rounded-lg field-system" placeholder="Beschreibung wird automatisch aus Teilprojekt geladen...">Implementierung digitaler Medienstrategien und -plattformen zur Verbesserung der Kundenkommunikation</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Ziel(e)</label>
+                            <textarea rows="4" readonly class="w-full p-3 border rounded-lg field-system" placeholder="Ziele werden automatisch aus Teilprojekt geladen...">Verbesserung der digitalen Präsenz und Erhöhung der Kundeninteraktion um 50%</textarea>
+                        </div>
+                        
+                        <div class="lg:col-span-2">
+                            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">K-Ziel-Bezug</label>
+                            <textarea rows="2" readonly class="w-full p-3 border rounded-lg field-system" placeholder="K-Ziel-Bezug wird automatisch geladen...">K1: Digitale Transformation, K3: Kundenzufriedenheit, K5: Innovation</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Massnahme Budget -->
+                <div>
+                    <div class="section-header">
+                        Massnahme Budget
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-[var(--color-text-primary)]">CHF 125,000</div>
+                                <div class="text-sm text-[var(--color-text-secondary)]">Budget SOLL (System)</div>
+                            </div>
+                            <div class="text-center">
+                                <input type="text" placeholder="CHF 0" 
+                                       class="w-full p-2 text-2xl font-bold text-center border rounded field-editable focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                                <div class="text-sm text-[var(--color-text-secondary)] mt-1">Budget IST (zu erfassen)</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-gray-400">CHF --</div>
+                                <div class="text-sm text-[var(--color-text-secondary)]">Verbleibendes Budget</div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="py-3 px-4 font-semibold text-[var(--color-text-secondary)]">Maßnahme</th>
+                                        <th class="py-3 px-4 font-semibold text-[var(--color-text-secondary)]">Budget SOLL</th>
+                                        <th class="py-3 px-4 font-semibold text-[var(--color-text-secondary)]">Budget IST</th>
+                                        <th class="py-3 px-4 font-semibold text-[var(--color-text-secondary)]">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-3 px-4 font-medium">Website-Redesign</td>
+                                        <td class="py-3 px-4">CHF 45,000</td>
+                                        <td class="py-3 px-4">
+                                            <input type="text" placeholder="CHF 0" 
+                                                   class="w-28 p-2 text-sm border rounded field-editable focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gray-400 h-2 rounded-full" style="width: 0%"></div>
+                                                </div>
+                                                <span class="text-xs">0%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-3 px-4 font-medium">Social Media Kampagne</td>
+                                        <td class="py-3 px-4">CHF 30,000</td>
+                                        <td class="py-3 px-4">
+                                            <input type="text" placeholder="CHF 0" 
+                                                   class="w-28 p-2 text-sm border rounded field-editable focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gray-400 h-2 rounded-full" style="width: 0%"></div>
+                                                </div>
+                                                <span class="text-xs">0%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium">Content Management System</td>
+                                        <td class="py-3 px-4">CHF 50,000</td>
+                                        <td class="py-3 px-4">
+                                            <input type="text" placeholder="CHF 0" 
+                                                   class="w-28 p-2 text-sm border rounded field-editable focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gray-400 h-2 rounded-full" style="width: 0%"></div>
+                                                </div>
+                                                <span class="text-xs">0%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Tracking -->
+                <div>
+                    <div class="section-header">
+                        KPI (Key Performance Indicators)
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white border border-[var(--color-border)] rounded-lg p-4">
+                            <h4 class="font-semibold text-[var(--color-text-primary)] mb-3">Website Traffic</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-[var(--color-text-secondary)]">Zielwert (SOLL):</span>
+                                    <span class="font-medium">50,000/Monat</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-[var(--color-text-secondary)]">Aktueller Wert (IST):</span>
+                                    <input type="text" placeholder="0/Monat" class="w-32 p-2 text-sm text-right border rounded field-editable focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-[var(--color-border)] rounded-lg p-4">
+                            <h4 class="font-semibold text-[var(--color-text-primary)] mb-3">Social Media Reach</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-[var(--color-text-secondary)]">Zielwert (SOLL):</span>
+                                    <span class="font-medium">100,000</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-[var(--color-text-secondary)]">Aktueller Wert (IST):</span>
+                                    <input type="text" placeholder="0" class="w-24 p-2 text-sm text-right border rounded field-editable focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-[var(--color-border)] rounded-lg p-4">
+                            <h4 class="font-semibold text-[var(--color-text-primary)] mb-3">Conversion Rate</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-[var(--color-text-secondary)]">Zielwert (SOLL):</span>
+                                    <span class="font-medium">3.5%</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-[var(--color-text-secondary)]">Aktueller Wert (IST):</span>
+                                    <input type="text" placeholder="0%" class="w-16 p-2 text-sm text-right border rounded field-editable focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frage/Antwort Bereich -->
+                <div>
+                    <div class="section-header">
+                        Frage/Antwort Bereich
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white border border-[var(--color-border)] rounded-lg p-4">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-blue-600">Q</span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-[var(--color-text-primary)]">Wie ist der aktuelle Stand der Website-Migration?</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 ml-9">
+                                <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-green-600">A</span>
+                                </div>
+                                <div class="flex-1">
+                                    <textarea rows="2" class="w-full p-3 text-sm border rounded field-editable focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Antwort eingeben..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-[var(--color-border)] rounded-lg p-4">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-blue-600">Q</span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-[var(--color-text-primary)]">Welche Herausforderungen gibt es bei der Content-Erstellung?</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 ml-9">
+                                <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-green-600">A</span>
+                                </div>
+                                <div class="flex-1">
+                                    <textarea rows="2" class="w-full p-3 text-sm border rounded field-editable focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Antwort eingeben..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Neue Frage hinzufügen -->
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-[var(--color-text-primary)] mb-3">Neue Frage hinzufügen</h4>
+                            <div class="space-y-3">
+                                <input type="text" placeholder="Ihre Frage..." class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <textarea rows="2" placeholder="Antwort (optional - kann später ergänzt werden)" class="w-full p-3 border rounded field-editable focus:outline-none focus:ring-2 focus:ring-yellow-500"></textarea>
+                                <button class="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 transition-opacity">
+                                    Frage hinzufügen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// SBV Rapport System - Einfach und funktional
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('SBV Rapport System geladen');
+    
+    // Elemente
+    const rapportListDiv = document.getElementById('rapport-list');
+    const newRapportFormDiv = document.getElementById('new-rapport-form');
+    const newRapportBtn = document.getElementById('new-rapport-btn');
+    const backToListBtn = document.getElementById('back-to-list');
+    
+    // Navigation zwischen Liste und Formular
+    newRapportBtn.addEventListener('click', function() {
+        showNewRapportForm();
+        console.log('Neuer Rapport - Formular geoeffnet');
+    });
+    
+    backToListBtn.addEventListener('click', function() {
+        showRapportList();
+        console.log('Zurueck zur Rapport-Liste');
+    });
+    
+    function showRapportList() {
+        rapportListDiv.classList.remove('hidden');
+        newRapportFormDiv.classList.add('hidden');
+    }
+    
+    function showNewRapportForm() {
+        rapportListDiv.classList.add('hidden');
+        newRapportFormDiv.classList.remove('hidden');
+    }
+    
+    // Search functionality in der Liste
+    const searchInput = document.querySelector('input[type="text"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            console.log('Suche nach Rapport: ' + searchTerm);
+            // TODO: Filter table rows based on search term
+        });
+    }
+    
+    // Filter dropdowns in der Liste
+    const filterSelects = document.querySelectorAll('select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function(e) {
+            console.log('Filter geaendert: ' + e.target.value);
+            // TODO: Filter table based on selection
+        });
+    });
+    
+    // View Report Funktion
+    window.viewReport = function(reportName) {
+        console.log('Rapport anzeigen: ' + reportName);
+        alert('Oeffne Rapport Details fuer: ' + reportName + '\n\nHier wuerde eine Detail-Ansicht des Rapports geoeffnet werden.');
+        // TODO: Open rapport detail view
+    };
+    
+    // Edit Report Funktion  
+    window.editReport = function(reportName) {
+        console.log('Rapport bearbeiten: ' + reportName);
+        alert('Bearbeite Rapport: ' + reportName + '\n\nHier wuerde das Bearbeitungsformular geoeffnet werden.');
+        // TODO: Open edit form with existing data
+    };
+    
+    // Teilprojekt-Auswahl Handler im Formular
+    const teilprojektSelect = document.querySelector('#new-rapport-form select');
+    if (teilprojektSelect) {
+        teilprojektSelect.addEventListener('change', function(e) {
+            const selectedTP = e.target.value;
+            console.log('Teilprojekt gewaehlt: ' + selectedTP);
+            
+            // Simuliere das Laden der Teilprojekt-Daten
+            if (selectedTP === 'tp-digitale-medien') {
+                updateFormWithTeilprojektData({
+                    project: 'Digitalisierung 2025',
+                    responsible: 'Anna Schmidt',
+                    description: 'Implementierung digitaler Medienstrategien und -plattformen zur Verbesserung der Kundenkommunikation',
+                    goals: 'Verbesserung der digitalen Präsenz und Erhöhung der Kundeninteraktion um 50%',
+                    kzielBezug: 'K1: Digitale Transformation, K3: Kundenzufriedenheit, K5: Innovation'
+                });
+            }
+            // TODO: Weitere Teilprojekte hinzufügen
+        });
+    }
+    
+    function updateFormWithTeilprojektData(data) {
+        // Aktualisiere die readonly Felder mit Teilprojekt-Daten
+        const projectInput = document.querySelector('input[value="Digitalisierung 2025"]');
+        const responsibleInput = document.querySelector('input[value="Anna Schmidt"]');
+        const descriptionTextarea = document.querySelector('textarea[placeholder*="Beschreibung wird automatisch"]');
+        const goalsTextarea = document.querySelector('textarea[placeholder*="Ziele werden automatisch"]');
+        const kzielTextarea = document.querySelector('textarea[placeholder*="K-Ziel-Bezug wird automatisch"]');
+        
+        if (projectInput) projectInput.value = data.project;
+        if (responsibleInput) responsibleInput.value = data.responsible;
+        if (descriptionTextarea) descriptionTextarea.value = data.description;
+        if (goalsTextarea) goalsTextarea.value = data.goals;
+        if (kzielTextarea) kzielTextarea.value = data.kzielBezug;
+        
+        console.log('Formular mit Teilprojekt-Daten aktualisiert');
+    }
+    
+    // Form Submit Handler
+    const saveButtons = document.querySelectorAll('#new-rapport-form button');
+    saveButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (button.textContent.includes('Entwurf')) {
+                console.log('Rapport als Entwurf gespeichert');
+                alert('Rapport wurde als Entwurf gespeichert!');
+            } else if (button.textContent.includes('fertigstellen')) {
+                console.log('Rapport fertiggestellt');
+                alert('Rapport wurde fertiggestellt und zur Liste hinzugefuegt!');
+                // Zurück zur Liste nach dem Fertigstellen
+                showRapportList();
+            }
+            // TODO: Formular-Daten sammeln und an Server senden
+        });
+    });
+    
+    // IST-Werte Berechnung bei Budget-Änderungen
+    const budgetInputs = document.querySelectorAll('.field-editable');
+    budgetInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            console.log('Budget IST-Wert aktualisiert');
+            // TODO: Gesamt-Budget neu berechnen
+            updateBudgetCalculations();
+        });
+    });
+    
+    function updateBudgetCalculations() {
+        // TODO: Implementiere Budget-Berechnungslogik
+        console.log('Budget-Berechnungen aktualisiert');
+    }
+    
+    console.log('SBV Rapport Interface bereit');
+    console.log('Klicken Sie auf "Neuer Rapport" um das Formular-Template zu oeffnen');
+});
+</script>
+
+</body>
+</html>

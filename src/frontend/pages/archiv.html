@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SBV Archiv - Jahresübersicht</title>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        :root {
+            --color-black: #000000;
+            --color-light-blue: #A4D2F4;
+            --color-green: #6BAF38;
+            --color-background: #F8FAFC;
+            --color-text-primary: #111827;
+            --color-text-secondary: #6B7280;
+            --color-card-background: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-red: #DC2626;
+            --color-orange: #F59E0B;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--color-background);
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-4" style="color: var(--color-text-primary);">Gesuchsjahr auswählen</h1>
+            <p class="text-lg" style="color: var(--color-text-secondary);">Wählen Sie das Jahr aus, für das Sie Gesuche und Berichte verwalten möchten oder erstellen Sie ein neues Archiv.</p>
+        </div>
+
+        <!-- Working Year Selection -->
+        <div class="mb-12">
+            <div class="flex items-end gap-4">
+                <div class="flex-1 max-w-xs">
+                    <label class="block text-sm font-semibold mb-3" style="color: var(--color-text-primary);">Gesuchsjahr</label>
+                    <select class="w-full rounded-lg border py-3 px-4 bg-white" style="border-color: var(--color-border); color: var(--color-text-primary);" id="working-year">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                    </select>
+                </div>
+                <button class="flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);">
+                    <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    </svg>
+                    <span>Neues Gesuchsjahr erstellen</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Annual Archives Section -->
+        <div>
+            <h2 class="text-2xl font-bold mb-8" style="color: var(--color-text-primary);">Jahresarchive</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                
+                <!-- 2023 Folder -->
+                <div class="group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300" onclick="openArchive('2023')">
+                    <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold" style="color: var(--color-text-primary);">2023</p>
+                </div>
+
+                <!-- 2022 Folder -->
+                <div class="group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300" onclick="openArchive('2022')">
+                    <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold" style="color: var(--color-text-primary);">2022</p>
+                </div>
+
+                <!-- 2021 Folder -->
+                <div class="group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300" onclick="openArchive('2021')">
+                    <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold" style="color: var(--color-text-primary);">2021</p>
+                </div>
+
+                <!-- 2020 Folder -->
+                <div class="group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300" onclick="openArchive('2020')">
+                    <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold" style="color: var(--color-text-primary);">2020</p>
+                </div>
+
+                <!-- 2019 Folder -->
+                <div class="group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300" onclick="openArchive('2019')">
+                    <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold" style="color: var(--color-text-primary);">2019</p>
+                </div>
+
+                <!-- 2018 Folder -->
+                <div class="group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300" onclick="openArchive('2018')">
+                    <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                        <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-base font-semibold" style="color: var(--color-text-primary);">2018</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Archive System - Database Connected
+        let availableYears = [];
+        let archiveData = {};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SBV Archiv System geladen');
+            loadAvailableYears();
+        });
+
+        // Load available years from database
+        async function loadAvailableYears() {
+            try {
+                const response = await fetch('/api/gesuche');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Extract unique years
+                    const years = [...new Set(data.data.map(g => g.jahr))].sort((a, b) => b - a);
+                    availableYears = years;
+                    
+                    // Update year selector
+                    updateYearSelector(years);
+                    
+                    // Load archive folders
+                    loadArchiveFolders(years);
+                    
+                    // Load statistics for each year
+                    loadYearStatistics(years);
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Jahre:', error);
+            }
+        }
+
+        // Update year selector dropdown
+        function updateYearSelector(years) {
+            const selector = document.getElementById('working-year');
+            selector.innerHTML = '';
+            
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === new Date().getFullYear()) {
+                    option.selected = true;
+                }
+                selector.appendChild(option);
+            });
+        }
+
+        // Load archive folders with real data
+        function loadArchiveFolders(years) {
+            const container = document.querySelector('.grid');
+            container.innerHTML = '';
+            
+            years.forEach(year => {
+                const folderDiv = createArchiveFolder(year);
+                container.appendChild(folderDiv);
+            });
+        }
+
+        // Create archive folder element
+        function createArchiveFolder(year) {
+            const div = document.createElement('div');
+            div.className = 'group flex flex-col items-center text-center gap-4 cursor-pointer transform hover:-translate-y-1 transition-all duration-300';
+            div.onclick = () => openArchive(year);
+            
+            div.innerHTML = `
+                <div class="w-24 h-24 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow" style="background-color: var(--color-light-blue);">
+                    <svg fill="white" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                    </svg>
+                </div>
+                <p class="text-base font-semibold" style="color: var(--color-text-primary);">${year}</p>
+                <p class="text-xs" style="color: var(--color-text-secondary);" id="stats-${year}">Lade...</p>
+            `;
+            
+            return div;
+        }
+
+        // Load statistics for years
+        async function loadYearStatistics(years) {
+            for (const year of years) {
+                try {
+                    const [gesucheRes, berichteRes] = await Promise.all([
+                        fetch(`/api/gesuche?jahr=${year}`),
+                        fetch(`/api/berichte?jahr=${year}`)
+                    ]);
+                    
+                    const gesucheData = await gesucheRes.json();
+                    const berichteData = await berichteRes.json();
+                    
+                    const gesucheCount = gesucheData.success ? gesucheData.count : 0;
+                    const berichteCount = berichteData.success ? berichteData.count : 0;
+                    
+                    const statsElement = document.getElementById(`stats-${year}`);
+                    if (statsElement) {
+                        statsElement.textContent = `${gesucheCount} Gesuche, ${berichteCount} Berichte`;
+                    }
+                    
+                    // Store data for detailed view
+                    archiveData[year] = {
+                        gesuche: gesucheData.data || [],
+                        berichte: berichteData.data || []
+                    };
+                } catch (error) {
+                    console.error(`Fehler beim Laden der Statistiken für ${year}:`, error);
+                    const statsElement = document.getElementById(`stats-${year}`);
+                    if (statsElement) {
+                        statsElement.textContent = 'Fehler beim Laden';
+                    }
+                }
+            }
+        }
+
+        // Open Archive Function with real data
+        function openArchive(year) {
+            console.log(`Öffne Archiv für Jahr: ${year}`);
+            
+            const data = archiveData[year];
+            if (!data) {
+                alert(`Daten für ${year} noch nicht geladen. Bitte warten Sie einen Moment.`);
+                return;
+            }
+            
+            // Kategorisiere Gesuche nach Typ
+            const partnerGesuche = data.gesuche.filter(g => g.gesuch_typ === 'partner' || !g.gesuch_typ);
+            const finanzGesuche = data.gesuche.filter(g => g.gesuch_typ === 'finanzgesuch');
+            const berichte = data.berichte;
+            
+            let content = `=== ARCHIV ${year} ===\\n\\n`;
+            content += `📋 PARTNER-GESUCHE (${partnerGesuche.length}):\\n`;
+            partnerGesuche.forEach((g, i) => {
+                content += `${i+1}. ${g.titel} (${g.status})\\n`;
+            });
+            
+            content += `\\n💰 FINANZGESUCHE (${finanzGesuche.length}):\\n`;
+            finanzGesuche.forEach((g, i) => {
+                content += `${i+1}. ${g.titel} (${g.status})`;
+                if (g.finanz_betrag) content += ` - CHF ${g.finanz_betrag}`;
+                content += `\\n`;
+            });
+            
+            content += `\\n📊 BERICHTE (${berichte.length}):\\n`;
+            berichte.forEach((b, i) => {
+                content += `${i+1}. ${b.titel} (${b.status})\\n`;
+            });
+            
+            alert(content);
+            
+            // In Zukunft: Öffne detaillierte Archiv-Ansicht
+            // showArchiveDetail(year, data);
+        }
+
+        // Create new year
+        async function createNewYear() {
+            const selectedYear = document.getElementById('working-year').value;
+            const currentYear = new Date().getFullYear();
+            
+            if (confirm(`Möchten Sie ein neues Archiv für das Gesuchsjahr ${selectedYear} erstellen?`)) {
+                try {
+                    // Hier könnte man ein neues Jahr in der Datenbank initialisieren
+                    console.log(`Neues Gesuchsjahr ${selectedYear} erstellt`);
+                    alert(`Gesuchsjahr ${selectedYear} wurde erfolgreich erstellt!`);
+                    
+                    // Reload data
+                    loadAvailableYears();
+                } catch (error) {
+                    console.error('Fehler beim Erstellen des neuen Jahres:', error);
+                    alert('Fehler beim Erstellen des neuen Jahres');
+                }
+            }
+        }
+
+        // File upload for AI analysis
+        async function uploadArchiveFile(file, year) {
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('jahr', year);
+            formData.append('typ', 'archiv');
+            
+            try {
+                const response = await fetch('/api/archiv/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('Dokument erfolgreich analysiert:', result.data.extractedData);
+                    alert(`Dokument analysiert!\\n\\nExtrahierte Teilprojekte: ${result.data.extractedData.teilprojekte?.length || 0}\\nKI-Vertrauen: ${(result.data.extractedData.ai_confidence * 100).toFixed(1)}%`);
+                    
+                    // Reload archive data
+                    loadAvailableYears();
+                } else {
+                    throw new Error(result.error || 'Upload fehlgeschlagen');
+                }
+            } catch (error) {
+                console.error('Upload-Fehler:', error);
+                alert('Fehler beim Upload: ' + error.message);
+            }
+        }
+
+        // Add event listener to create button
+        document.addEventListener('DOMContentLoaded', function() {
+            const createButton = document.querySelector('button[style*="background-color: var(--color-green)"]');
+            if (createButton) {
+                createButton.onclick = createNewYear;
+            }
+        });
+    </script>
+</body>
+</html>

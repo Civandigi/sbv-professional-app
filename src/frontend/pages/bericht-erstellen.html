@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuen Rapport erstellen - SBV</title>
+    <style>
+        :root {
+            --color-primary: #40a2e3;
+            --color-secondary: #6BAF38;
+            --color-background: #F8FAFC;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-border: #E2E8F0;
+            --color-yellow-bg: #fef3c7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            padding: 1rem;
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .page-subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+        }
+
+        .form-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--color-secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(64, 162, 227, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 4rem;
+        }
+
+        /* Tabelle für Massnahmen */
+        .measures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .measures-table th,
+        .measures-table td {
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            text-align: left;
+        }
+
+        .measures-table th {
+            background-color: var(--color-yellow-bg);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--color-text-primary);
+        }
+
+        .measures-table td {
+            background-color: var(--color-yellow-bg);
+        }
+
+        .measures-table input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .measures-table input:focus {
+            outline: 1px solid var(--color-primary);
+            border-radius: 0.25rem;
+        }
+
+        .measure-row-label {
+            font-weight: 500;
+            padding-left: 1rem;
+        }
+
+        /* KPI Sektion */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-input {
+            background-color: var(--color-yellow-bg);
+            border: 1px solid var(--color-border);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+
+        /* Fragen Sektion */
+        .questions-section {
+            margin-top: 2rem;
+        }
+
+        .question-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .question-label {
+            display: block;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .question-textarea {
+            width: 100%;
+            min-height: 4rem;
+            background-color: var(--color-yellow-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            resize: vertical;
+        }
+
+        .add-measure-btn {
+            margin-top: 0.5rem;
+            background-color: transparent;
+            color: var(--color-primary);
+            border: 1px dashed var(--color-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .add-measure-btn:hover {
+            background-color: rgba(64, 162, 227, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1 class="page-title">Neuen Rapport erstellen</h1>
+        <p class="page-subtitle">Schweizer Bauverband - Projekt-Rapporterstellung</p>
+    </div>
+
+    <div class="form-container">
+        <div class="form-header">
+            <h2 class="form-title">TP 2 - DigitaleMedien</h2>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="handleAction('cancel')">Abbrechen</button>
+                <button class="btn btn-primary" onclick="handleAction('save')">Speichern</button>
+            </div>
+        </div>
+
+        <form id="reportForm">
+            <!-- Grundinformationen -->
+            <div class="form-section">
+                <div class="form-grid">
+                    <label class="form-label">Teilprojekt</label>
+                    <input type="text" class="form-input" value="TP3 - Messen & Ausstellungen" name="teilprojekt">
+                </div>
+
+                <div class="form-grid">
+                    <label class="form-label">Beschreibung</label>
+                    <textarea class="form-input form-textarea" name="beschreibung" placeholder="Beschreibung"></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <label class="form-label">Ziel(e)</label>
+                    <textarea class="form-input form-textarea" name="ziele" placeholder="Ziel(e)"></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <label class="form-label">K-Ziel-Bezug</label>
+                    <textarea class="form-input form-textarea" name="kzielBezug" placeholder="K-Ziel-Bezug"></textarea>
+                </div>
+            </div>
+
+            <!-- Massnahmen Tabelle -->
+            <div class="form-section">
+                <h3 class="section-title">Massnahme</h3>
+                <table class="measures-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">Massnahme</th>
+                            <th>Budget Brutto</th>
+                            <th>IST Brutto</th>
+                            <th>Aufwandsminderung</th>
+                            <th>Kosten Netto</th>
+                            <th>Streukosten</th>
+                            <th>Produktionskosten</th>
+                            <th>Overhead</th>
+                            <th width="30"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="measuresTableBody">
+                        <tr>
+                            <td class="measure-row-label">Social-Media-Kampagne</td>
+                            <td><input type="text" placeholder="K-Ziel-Bezug" name="budget_1"></td>
+                            <td><input type="text" placeholder="IST Brutto" name="ist_1"></td>
+                            <td><input type="text" placeholder="Aufwandsminderung" name="aufwand_1"></td>
+                            <td><input type="text" placeholder="Kosten Netto" name="kosten_1"></td>
+                            <td><input type="text" placeholder="Streu Kosten" name="streu_1"></td>
+                            <td><input type="text" placeholder="Produktionskosten" name="produktion_1"></td>
+                            <td><input type="text" placeholder="Overhead" name="overhead_1"></td>
+                            <td>
+                                <button type="button" style="background: none; border: none; cursor: pointer; color: #666; font-size: 1.2em;" onclick="removeMeasure(this)">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="measure-row-label">Content-Platzierung</td>
+                            <td><input type="text" placeholder="K-Ziel-Bezug" name="budget_2"></td>
+                            <td><input type="text" placeholder="IST Brutto" name="ist_2"></td>
+                            <td><input type="text" placeholder="Aufwandsminderung" name="aufwand_2"></td>
+                            <td><input type="text" placeholder="Kosten Netto" name="kosten_2"></td>
+                            <td><input type="text" placeholder="Streu Kosten" name="streu_2"></td>
+                            <td><input type="text" placeholder="Produktionskosten" name="produktion_2"></td>
+                            <td><input type="text" placeholder="Overhead" name="overhead_2"></td>
+                            <td>
+                                <button type="button" style="background: none; border: none; cursor: pointer; color: #666; font-size: 1.2em;" onclick="removeMeasure(this)">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" style="font-weight: 600;">Total</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" class="add-measure-btn" onclick="addMeasure()">+ Weitere Massnahme hinzufügen</button>
+            </div>
+
+            <!-- KPI Sektion -->
+            <div class="form-section">
+                <h3 class="section-title">KPI</h3>
+                <div class="kpi-grid">
+                    <label class="form-label">Impressions</label>
+                    <input type="text" class="kpi-input" name="impressions" placeholder="K-Ziel-Bezug">
+                </div>
+                <div class="kpi-grid">
+                    <label class="form-label">Verweildauer</label>
+                    <input type="text" class="kpi-input" name="verweildauer" placeholder="K-Ziel-Bezug">
+                </div>
+            </div>
+
+            <!-- Fragen Sektion -->
+            <div class="form-section questions-section">
+                <h3 class="section-title">Frage</h3>
+                
+                <div class="question-item">
+                    <label class="question-label">Was lief gut?</label>
+                    <textarea class="question-textarea" name="wasLiefGut" placeholder="Enter value"></textarea>
+                </div>
+
+                <div class="question-item">
+                    <label class="question-label">Wo gab es Abweichungen?</label>
+                    <textarea class="question-textarea" name="abweichungen" placeholder="Enter value"></textarea>
+                </div>
+
+                <div class="question-item">
+                    <label class="question-label">Erkenntnisse / Lessons Learned</label>
+                    <textarea class="question-textarea" name="erkenntnisse" placeholder="Enter value"></textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let measureCounter = 2;
+
+        function addMeasure() {
+            measureCounter++;
+            const tableBody = document.getElementById('measuresTableBody');
+            const totalRow = tableBody.lastElementChild;
+            
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="measure-row-label">
+                    <input type="text" placeholder="Neue Massnahme" name="massnahme_${measureCounter}" style="background: transparent; border: none; font-weight: 500; width: 100%;">
+                </td>
+                <td><input type="text" placeholder="Budget" name="budget_${measureCounter}"></td>
+                <td><input type="text" placeholder="IST Brutto" name="ist_${measureCounter}"></td>
+                <td><input type="text" placeholder="Aufwandsminderung" name="aufwand_${measureCounter}"></td>
+                <td><input type="text" placeholder="Kosten Netto" name="kosten_${measureCounter}"></td>
+                <td><input type="text" placeholder="Streu Kosten" name="streu_${measureCounter}"></td>
+                <td><input type="text" placeholder="Produktionskosten" name="produktion_${measureCounter}"></td>
+                <td><input type="text" placeholder="Overhead" name="overhead_${measureCounter}"></td>
+                <td>
+                    <button type="button" style="background: none; border: none; cursor: pointer; color: #666; font-size: 1.2em;" onclick="removeMeasure(this)">🗑️</button>
+                </td>
+            `;
+            
+            tableBody.insertBefore(newRow, totalRow);
+        }
+
+        function removeMeasure(button) {
+            const row = button.closest('tr');
+            if (document.querySelectorAll('#measuresTableBody tr').length > 2) { // Keep at least one measure + total row
+                row.remove();
+            }
+        }
+
+        function handleAction(actionType) {
+            if (actionType === 'save') {
+                // Collect form data
+                const formData = new FormData(document.getElementById('reportForm'));
+                const data = Object.fromEntries(formData.entries());
+                
+                console.log('Saving report:', data);
+                
+                // Send message to parent (Retool) if in iframe
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'reportSaved',
+                        data: data,
+                        timestamp: new Date().toISOString()
+                    }, '*');
+                }
+                
+                // Visual feedback
+                const saveBtn = document.querySelector('.btn-primary');
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = 'Gespeichert!';
+                saveBtn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.style.background = '';
+                }, 2000);
+                
+            } else if (actionType === 'cancel') {
+                if (confirm('Möchten Sie wirklich abbrechen? Ungespeicherte Änderungen gehen verloren.')) {
+                    // Send message to parent (Retool) if in iframe
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'reportCancelled',
+                            timestamp: new Date().toISOString()
+                        }, '*');
+                    }
+                    
+                    // Could navigate back or clear form
+                    console.log('Report creation cancelled');
+                }
+            }
+        }
+
+        // Add visual feedback for button clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

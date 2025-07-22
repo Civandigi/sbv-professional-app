@@ -1,0 +1,26 @@
+{
+  "toolscriptVersion": "1.0.0",
+  "version": "43.0.9",
+  "pageUuid": "31caad80-3ba8-11f0-97f9-4b9d42f6c6bd",
+  "appTemplate": {
+    "pageCodeFolders": {
+      "object": {
+        "Gesuche": {
+          "array": []
+        },
+        "Rapport": {
+          "array": []
+        },
+        "neuesgesuch": {
+          "array": []
+        },
+        "page1": {
+          "array": []
+        }
+      }
+    },
+    "rootScreen": "Gesuche",
+    "version": "3.220.0",
+    "experimentalDataTabEnabled": true
+  }
+}
