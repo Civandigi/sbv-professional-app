@@ -2291,6 +2291,7 @@ app.get('/api', (req, res) => {
             gesuche: {
                 "/api/gesuche": "GET - Gesuche abrufen (Auth required)",
                 "/api/gesuche/upload": "POST - Gesuch hochladen (Auth required)",
+                "/api/debug/fix-years": "POST - Jahr-Mismatches korrigieren (Admin only)",
                 "/api/rapport": "POST - Rapport erstellen (Auth required)"
             },
             system: {
@@ -2374,6 +2375,78 @@ async function ensureUploadDirectory() {
 ensureUploadDirectory().catch(err => {
     logger.error('❌ Fehler beim Erstellen des Upload-Verzeichnisses:', err);
 });
+
+// ===== DEBUG & MAINTENANCE ENDPOINTS =====
+
+// Debug - Fix Year Mismatches
+app.post('/api/debug/fix-years', authenticateToken, async (req, res) => {
+    try {
+        if (!['admin', 'super_admin'].includes(req.user.rolle)) {
+            return res.status(403).json({ 
+                success: false,
+                message: 'Keine Berechtigung - Nur Admins können Jahre korrigieren' 
+            });
+        }
+
+        logger.info('Jahr-Fix gestartet', { user: req.user.email });
+
+        // Suche nach Jahr-Mismatches in Gesuch-Uploads
+        const mismatches = await pool.query(`
+            SELECT id, titel, uploaded_file, jahr, eingereicht_am
+            FROM sbv_gesuche 
+            WHERE uploaded_file IS NOT NULL
+            AND jahr != EXTRACT(YEAR FROM eingereicht_am)
+        `);
+
+        let fixedCount = 0;
+
+        for (const row of mismatches.rows) {
+            const fileName = row.uploaded_file;
+            // Extrahiere Jahr aus Dateiname
+            const yearMatches = fileName.match(/20(\d{2})/g);
+            if (yearMatches && yearMatches.length > 0) {
+                const detectedYear = parseInt(yearMatches[0]);
+                
+                await pool.query(`
+                    UPDATE sbv_gesuche 
+                    SET jahr = $1 
+                    WHERE id = $2
+                `, [detectedYear, row.id]);
+
+                // Update auch zugehörige Berichte
+                await pool.query(`
+                    UPDATE sbv_berichte 
+                    SET jahr = $1 
+                    WHERE gesuch_id = $2
+                `, [detectedYear, row.id]);
+
+                fixedCount++;
+                logger.info('Jahr korrigiert', { 
+                    gesuchId: row.id, 
+                    altesJahr: row.jahr, 
+                    neuesJahr: detectedYear,
+                    dateiname: fileName 
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `${fixedCount} Jahr-Mismatches behoben`,
+            fixedCount,
+            totalMismatches: mismatches.rows.length
+        });
+
+    } catch (error) {
+        logger.error('Fehler beim Jahr-Fix:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Fehler beim Korrigieren der Jahre'
+        });
+    }
+});
+
+// ===== ERROR HANDLING & CLEANUP =====
 
 // Database connection error handling
 pool.on('error', (err) => {

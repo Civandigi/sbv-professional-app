@@ -40,18 +40,30 @@
                 <div class="flex-1 max-w-xs">
                     <label class="block text-sm font-semibold mb-3" style="color: var(--color-text-primary);">Gesuchsjahr</label>
                     <select class="w-full rounded-lg border py-3 px-4 bg-white" style="border-color: var(--color-border); color: var(--color-text-primary);" id="working-year">
-                        <option value="2025">2025</option>
+                        <option value="2030">2030</option>
+                        <option value="2029">2029</option>
+                        <option value="2028">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2026">2026</option>
+                        <option value="2025" selected>2025</option>
                         <option value="2024">2024</option>
                         <option value="2023">2023</option>
                         <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
                     </select>
                 </div>
-                <button class="flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);" onclick="uploadGesuch()">
-                    <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                    </svg>
-                    <span>Gesuch hochladen</span>
-                </button>
+                <div class="flex gap-2">
+                    <button class="flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-green);" onclick="uploadGesuch()">
+                        <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        <span>Gesuch hochladen</span>
+                    </button>
+                    <button class="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-white text-sm font-bold hover:opacity-90 transition-colors" style="background-color: var(--color-orange);" onclick="SBVYearFixer.fixYearMismatch()">
+                        🔧 Jahre korrigieren
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -135,9 +147,17 @@
                     <div class="mb-4">
                         <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Jahr</label>
                         <select id="uploadYear" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
-                            <option value="2025">2025</option>
+                            <option value="2030">2030</option>
+                            <option value="2029">2029</option>
+                            <option value="2028">2028</option>
+                            <option value="2027">2027</option>
+                            <option value="2026">2026</option>
+                            <option value="2025" selected>2025</option>
                             <option value="2024">2024</option>
                             <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
                         </select>
                     </div>
                     <div class="mb-6">
@@ -157,6 +177,9 @@
         </div>
     </div>
 
+    <!-- Enhanced Upload System -->
+    <script src="../scripts/upload-enhanced.js"></script>
+    
     <script>
         // Archive System - Database Connected
         let availableYears = [];
