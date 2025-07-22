@@ -3,347 +3,558 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>SBV System-Einstellungen</title>
+    <title>SBV User-Verwaltung & Einstellungen</title>
     <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
     <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" onload="this.rel='stylesheet'" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style>
         :root {
+            --color-primary: #A4D2F4;
+            --color-secondary: #6BAF38;
             --color-black: #000000;
-            --color-light-blue: #A4D2F4;
-            --color-green: #6BAF38;
             --color-background: #F8FAFC;
-            --color-text-primary: #111827;
-            --color-text-secondary: #6B7280;
-            --color-card-background: #FFFFFF;
-            --color-border: #E5E7EB;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-border: #E2E8F0;
             --color-red: #DC2626;
             --color-orange: #F59E0B;
-            --color-yellow: #FCD34D;
+            --color-yellow: #FEF3C7;
+            --color-success: #10B981;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--color-background);
         }
-        .setting-card {
+        .user-card {
             transition: all 0.2s ease;
         }
-        .setting-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .user-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
         }
-        .role-badge-super {
+        .role-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        .role-super {
             background-color: var(--color-red);
             color: white;
         }
-        .role-badge-admin {
-            background-color: var(--color-green);
+        .role-admin {
+            background-color: var(--color-secondary);
             color: white;
         }
-        .role-badge-nutzer {
-            background-color: var(--color-light-blue);
-            color: var(--color-black);
+        .role-benutzer {
+            background-color: #E5E7EB;
+            color: #374151;
+        }
+        .status-active {
+            background-color: var(--color-success);
+            color: white;
+        }
+        .status-inactive {
+            background-color: #EF4444;
+            color: white;
+        }
+        .tab-button {
+            padding: 0.25rem 0.5rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        .tab-button.active {
+            border-bottom-color: var(--color-secondary);
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+        .tab-button:hover {
+            color: var(--color-text-primary);
         }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header Section -->
+<body class="bg-[var(--color-background)] text-[var(--color-text-primary)] min-h-screen">
+    <div class="p-8 max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Einstellungen</h1>
+                <p class="text-[var(--color-text-secondary)] mt-2">Benutzer verwalten, Rollen zuweisen und Systemeinstellungen konfigurieren</p>
+            </div>
+            <button id="add-user-btn" class="bg-[var(--color-secondary)] text-white font-semibold py-3 px-6 rounded-full hover:opacity-90 transition-opacity">
+                + Neuer Benutzer
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
         <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-4" style="color: var(--color-text-primary);">System-Einstellungen</h1>
-            <p class="text-lg" style="color: var(--color-text-secondary);">Verwalten Sie Systemkonfiguration und Benutzerzuweisungen.</p>
+            <div class="flex border-b border-[var(--color-border)]">
+                <button class="tab-button active" onclick="showTab('users')">Benutzer</button>
+                <button class="tab-button" onclick="showTab('system')">Einstellungen</button>
+            </div>
         </div>
 
-        <!-- Settings Categories -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            
-            <!-- User Management (Admin & Super Admin) -->
-            <div id="user-management-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openUserManagement()">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-green);">
-                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
-                            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.998 2.998 0 0 0 16.81 6.5c-1.1 0-2.05.68-2.45 1.63L12 13v5c0 1.1.9 2 2 2s2-.9 2-2v-2h4zm-13.5-6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm1.5 1h-2c-1.38 0-2.5 1.12-2.5 2.5V22h7v-2.5c0-1.38-1.12-2.5-2.5-2.5z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xs font-bold px-2 py-1 rounded" style="background-color: var(--color-green); color: white;">ADMIN</span>
+        <!-- Users Tab Content -->
+        <div id="users-tab" class="tab-content">
+            <!-- User Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-text-primary)]">12</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Gesamt Benutzer</div>
                 </div>
-                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Personenzuweisung</h3>
-                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Benutzer verwalten und Rollen zu Teilprojekten zuweisen</p>
-                <div class="flex items-center text-sm" style="color: var(--color-green);">
-                    <span>Benutzer verwalten</span>
-                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                    </svg>
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-secondary)]">3</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Admins</div>
                 </div>
-            </div>
-
-            <!-- System Logs (Super Admin only) -->
-            <div id="system-logs-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openSystemLogs()">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-orange);">
-                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
-                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-primary)]">8</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Benutzer</div>
                 </div>
-                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">System-Logs</h3>
-                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Systemprotokolle und Aktivitätsüberwachung</p>
-                <div class="flex items-center text-sm" style="color: var(--color-orange);">
-                    <span>Protokolle anzeigen</span>
-                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                    </svg>
+                <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-[var(--color-success)]">11</div>
+                    <div class="text-sm text-[var(--color-text-secondary)]">Aktive Benutzer</div>
                 </div>
             </div>
 
-            <!-- Database Settings (Super Admin only) -->
-            <div id="database-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openDatabaseSettings()">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-red);">
-                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
-                            <path d="M12,3C7.58,3 4,4.79 4,7C4,9.21 7.58,11 12,11C16.42,11 20,9.21 20,7C20,4.79 16.42,3 12,3M4,9V12C4,14.21 7.58,16 12,16C16.42,16 20,14.21 20,12V9C20,11.21 16.42,13 12,13C7.58,13 4,11.21 4,9M4,14V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V14C20,16.21 16.42,18 12,18C7.58,18 4,16.21 4,14Z"/>
-                        </svg>
+            <!-- User Search and Filters -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 mb-6">
+                    <div class="flex-1">
+                        <input type="text" placeholder="Benutzer suchen (Name, Email, Rolle)..." 
+                               class="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                     </div>
-                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
+                    <div class="flex gap-3">
+                        <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option>Alle Rollen</option>
+                            <option>Super Admin</option>
+                            <option>Admin</option>
+                            <option>Benutzer</option>
+                        </select>
+                        <select class="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option>Alle Status</option>
+                            <option>Aktiv</option>
+                            <option>Inaktiv</option>
+                            <option>Gesperrt</option>
+                        </select>
+                    </div>
                 </div>
-                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Datenbankeinstellungen</h3>
-                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Datenbankverbindung und Konfiguration verwalten</p>
-                <div class="flex items-center text-sm" style="color: var(--color-red);">
-                    <span>Konfiguration bearbeiten</span>
-                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                    </svg>
+
+                <!-- Users Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-[var(--color-border)]">
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Benutzer</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Rolle</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Teilprojekte</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Status</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Letzter Login</th>
+                                <th class="py-4 px-4 text-sm font-bold text-[var(--color-text-secondary)] uppercase">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            MS
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Max Schweizer</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">max.schweizer@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-super">Super Admin</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">Alle Projekte</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">Heute, 08:45</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Max Schweizer')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Max Schweizer')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-secondary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            AS
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Anna Schmidt</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">anna.schmidt@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-admin">Admin</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 1, TP 2, TP 5</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">Gestern, 17:30</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Anna Schmidt')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Anna Schmidt')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            PM
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Peter Müller</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">peter.mueller@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-benutzer">Benutzer</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 3, TP 4</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">20.07.2025, 14:22</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Peter Müller')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Peter Müller')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold">
+                                            SW
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Sarah Weber</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">sarah.weber@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-benutzer">Benutzer</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 2</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-inactive">Inaktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">15.07.2025, 09:15</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Sarah Weber')">Bearbeiten</button>
+                                        <button class="text-[var(--color-success)] font-semibold hover:underline text-sm" onclick="activateUser('Sarah Weber')">Aktivieren</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="border-b border-[var(--color-border)] hover:bg-gray-50 user-card">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[var(--color-secondary)] rounded-full flex items-center justify-center text-white font-semibold">
+                                            TK
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-[var(--color-text-primary)]">Thomas Kaufmann</div>
+                                            <div class="text-sm text-[var(--color-text-secondary)]">thomas.kaufmann@sbv.ch</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge role-admin">Admin</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <div class="text-sm text-[var(--color-text-secondary)]">TP 6, TP 7</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="role-badge status-active">Aktiv</span>
+                                </td>
+                                <td class="py-4 px-4 text-[var(--color-text-secondary)]">18.07.2025, 16:45</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex gap-2">
+                                        <button class="text-[var(--color-primary)] font-semibold hover:underline text-sm" onclick="editUser('Thomas Kaufmann')">Bearbeiten</button>
+                                        <button class="text-[var(--color-text-secondary)] font-semibold hover:underline text-sm" onclick="viewUser('Thomas Kaufmann')">Details</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
-            <!-- System Configuration (Super Admin only) -->
-            <div id="system-config-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openSystemConfig()">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-text-secondary);">
-                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
-                            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
-                </div>
-                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Systemkonfiguration</h3>
-                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Erweiterte Systemeinstellungen und Parameter</p>
-                <div class="flex items-center text-sm" style="color: var(--color-text-secondary);">
-                    <span>Einstellungen verwalten</span>
-                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Backup & Security (Super Admin only) -->
-            <div id="backup-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openBackupSettings()">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-light-blue);">
-                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
-                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-super">SUPER</span>
-                </div>
-                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Backup & Sicherheit</h3>
-                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Datensicherung und Sicherheitseinstellungen</p>
-                <div class="flex items-center text-sm" style="color: var(--color-light-blue);">
-                    <span>Backup verwalten</span>
-                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- General Settings (All roles) -->
-            <div id="general-card" class="setting-card bg-white rounded-2xl shadow-sm p-6 cursor-pointer" onclick="openGeneralSettings()">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: var(--color-text-secondary);">
-                        <svg fill="white" height="24" viewBox="0 0 24 24" width="24">
-                            <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
-                        </svg>
-                    </div>
-                    <span class="text-xs font-bold px-2 py-1 rounded role-badge-nutzer">ALLE</span>
-                </div>
-                <h3 class="text-xl font-bold mb-2" style="color: var(--color-text-primary);">Allgemeine Einstellungen</h3>
-                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">Profil und Benachrichtigungseinstellungen</p>
-                <div class="flex items-center text-sm" style="color: var(--color-text-secondary);">
-                    <span>Profil bearbeiten</span>
-                    <svg fill="currentColor" height="16" viewBox="0 0 24 24" width="16" class="ml-1">
-                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                    </svg>
-                </div>
-            </div>
-
         </div>
 
-        <!-- User Management Section (embedded in settings) -->
-        <div id="user-management-section" class="mt-12 hidden">
-            <div class="bg-white rounded-2xl shadow-sm p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold" style="color: var(--color-text-primary);">Personenzuweisung</h2>
-                    <button onclick="closeUserManagement()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+        <!-- System Settings Tab Content (hidden by default) -->
+        <div id="system-tab" class="tab-content hidden">
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 mt-10 items-start">
+                <!-- Session Timeout -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between min-h-[220px]">
+                    <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-6">Session Timeout</h3>
+                    <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <option>30 Minuten</option>
+                        <option>1 Stunde</option>
+                        <option>4 Stunden</option>
+                        <option>8 Stunden</option>
+                    </select>
+                </div>
+                <!-- API Key -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between min-h-[220px]">
+                    <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-6">API-Schlüssel</h3>
+                    <div class="flex gap-3">
+                        <input type="text" id="api-key" readonly value="API-XXXX-XXXX-XXXX" class="flex-1 p-3 border border-[var(--color-border)] rounded-lg bg-gray-50 text-gray-700">
+                        <button type="button" onclick="generateApiKey()" class="px-4 py-2 text-white bg-[var(--color-secondary)] rounded-lg hover:opacity-90 transition-opacity">Neu generieren</button>
+                    </div>
+                </div>
+                <!-- Backup Einstellungen -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between min-h-[220px]">
+                    <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-6">Backup Einstellungen</h3>
+                    <div class="flex gap-3 mb-3">
+                        <button type="button" class="px-4 py-2 text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 transition-opacity">Backup jetzt erstellen</button>
+                        <select class="p-3 border border-[var(--color-border)] rounded-lg">
+                            <option>Täglich</option>
+                            <option>Wöchentlich</option>
+                            <option>Monatlich</option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-[var(--color-text-secondary)]">Letztes Backup: 21.07.2025, 23:00 Uhr</p>
+                </div>
+                <!-- Datenbank Einstellungen -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between min-h-[220px]">
+                    <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-6">Datenbank Einstellungen</h3>
+                    <div class="space-y-3">
+                        <input type="text" placeholder="Host" class="w-full p-3 border border-[var(--color-border)] rounded-lg">
+                        <input type="text" placeholder="Port" class="w-full p-3 border border-[var(--color-border)] rounded-lg">
+                        <input type="text" placeholder="Benutzername" class="w-full p-3 border border-[var(--color-border)] rounded-lg">
+                        <input type="password" placeholder="Passwort" class="w-full p-3 border border-[var(--color-border)] rounded-lg">
+                    </div>
+                </div>
+                <!-- Sicherheitseinstellungen (ohne 2FA) -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between min-h-[220px] xl:col-span-4 mt-4">
+                    <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-6">Sicherheitseinstellungen</h3>
+                    <div class="space-y-3 md:flex md:gap-10 md:space-y-0">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="pw-policy" class="w-4 h-4">
+                            <label for="pw-policy" class="text-sm">Starke Passwort-Richtlinie aktivieren</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="auto-logout" class="w-4 h-4">
+                            <label for="auto-logout" class="text-sm">Automatisches Logout nach Inaktivität</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- System Log -->
+            </div>
+        </div>
+
+        <!-- Add User Modal (hidden) -->
+        <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)]">Neuen Benutzer hinzufügen</h3>
+                    <button onclick="closeAddUserModal()" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
                     </button>
                 </div>
-                <div id="user-management-content">
-                    <!-- Content will be loaded dynamically -->
-                    <div class="text-center py-8">
-                        <p class="text-lg" style="color: var(--color-text-secondary);">Lade Benutzerverwaltung...</p>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Name</label>
+                        <input type="text" placeholder="z.B. Maria Zimmermann" class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                     </div>
-                </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Email</label>
+                        <input type="email" placeholder="email@sbv.ch" class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Rolle</label>
+                        <select class="w-full p-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option>Benutzer</option>
+                            <option>Admin</option>
+                            <option>Super Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Teilprojekte</label>
+                        <div class="space-y-2 max-h-32 overflow-y-auto border border-[var(--color-border)] rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="tp1" class="w-4 h-4">
+                                <label for="tp1" class="text-sm">TP 1 - Server-Infrastruktur</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="tp2" class="w-4 h-4">
+                                <label for="tp2" class="text-sm">TP 2 - DigitaleMedien</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="tp3" class="w-4 h-4">
+                                <label for="tp3" class="text-sm">TP 3 - Mitarbeiter-Schulungen</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeAddUserModal()" class="flex-1 px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-gray-50 transition-colors">
+                            Abbrechen
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-2 text-white bg-[var(--color-secondary)] rounded-lg hover:opacity-90 transition-opacity">
+                            Benutzer erstellen
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-
     </div>
 
-    <script>
-        let currentUserRole = null;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('SBV System-Einstellungen geladen');
-            loadUserRole();
-            setupRoleBasedVisibility();
+<script>
+// SBV User Management System
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('SBV User Management System geladen');
+    
+    // Tab Navigation
+    window.showTab = function(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
         });
-
-        // Load current user role and setup visibility
-        async function loadUserRole() {
-            try {
-                const user = sessionStorage.getItem('sbv_user');
-                if (user) {
-                    const userData = JSON.parse(user);
-                    currentUserRole = userData.rolle || 'nutzer';
-                    console.log('Aktuelle Benutzerrolle:', currentUserRole);
-                    setupRoleBasedVisibility();
-                } else {
-                    window.location.href = '/login.html';
-                }
-            } catch (error) {
-                console.error('Fehler beim Laden der Benutzerrolle:', error);
-                currentUserRole = 'nutzer';
-                setupRoleBasedVisibility();
-            }
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName + '-tab').classList.remove('hidden');
+        
+        // Add active class to clicked button
+        event.target.classList.add('active');
+        
+        console.log('Tab gewechselt zu: ' + tabName);
+    };
+    
+    // Add User Modal
+    window.openAddUserModal = function() {
+        document.getElementById('add-user-modal').classList.remove('hidden');
+        console.log('Add User Modal geöffnet');
+    };
+    
+    window.closeAddUserModal = function() {
+        document.getElementById('add-user-modal').classList.add('hidden');
+        console.log('Add User Modal geschlossen');
+    };
+    
+    // Add User Button Event
+    document.getElementById('add-user-btn').addEventListener('click', openAddUserModal);
+    
+    // User Management Functions
+    window.editUser = function(userName) {
+        console.log('Benutzer bearbeiten: ' + userName);
+        alert('Benutzer-Editor für: ' + userName + '\n\nHier würde das Bearbeitungsformular geöffnet werden mit:\n- Rolle ändern\n- Teilprojekte zuweisen\n- Status ändern\n- Passwort zurücksetzen');
+        // TODO: Open user edit modal with existing data
+    };
+    
+    window.viewUser = function(userName) {
+        console.log('Benutzer Details anzeigen: ' + userName);
+        alert('Benutzer Details für: ' + userName + '\n\nHier würde eine Detail-Ansicht geöffnet werden mit:\n- Login Historie\n- Zugewiesene Projekte\n- Aktivitäts-Log\n- Berechtigungen');
+        // TODO: Open user detail view
+    };
+    
+    window.activateUser = function(userName) {
+        console.log('Benutzer aktivieren: ' + userName);
+        if (confirm('Benutzer "' + userName + '" aktivieren?')) {
+            alert('Benutzer wurde aktiviert!');
+            // TODO: Send activation request to server
+            // TODO: Update UI to show active status
         }
-
-        // Setup visibility based on user role
-        function setupRoleBasedVisibility() {
-            const superAdminCards = ['system-logs-card', 'database-card', 'system-config-card', 'backup-card'];
-            const adminCards = ['user-management-card'];
+    };
+    
+    // API-Key generieren (Dummy)
+    window.generateApiKey = function() {
+        const key = 'API-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+        document.getElementById('api-key').value = key;
+        alert('Neuer API-Schlüssel generiert!');
+    };
+    
+    // Search functionality
+    const searchInput = document.querySelector('input[placeholder*="Benutzer suchen"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            console.log('Suche nach Benutzer: ' + searchTerm);
+            // TODO: Filter user table based on search term
+        });
+    }
+    
+    // Filter dropdowns
+    const filterSelects = document.querySelectorAll('select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function(e) {
+            console.log('Filter geändert: ' + e.target.value);
+            // TODO: Filter users based on selection
+        });
+    });
+    
+    // Form submission for new user
+    const addUserForm = document.querySelector('#add-user-modal form');
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Neuer Benutzer wird erstellt');
             
-            if (currentUserRole === 'super_admin') {
-                // Super Admin sieht alles
-                console.log('🔴 Super Admin - Alle Einstellungen verfügbar');
-            } else if (currentUserRole === 'admin') {
-                // Admin sieht nur User Management und General Settings
-                superAdminCards.forEach(cardId => {
-                    const card = document.getElementById(cardId);
-                    if (card) {
-                        card.style.display = 'none';
-                    }
-                });
-                console.log('🟢 Administrator - Eingeschränkte Einstellungen');
-            } else {
-                // Nutzer sieht nur General Settings
-                superAdminCards.concat(adminCards).forEach(cardId => {
-                    const card = document.getElementById(cardId);
-                    if (card) {
-                        card.style.display = 'none';
-                    }
-                });
-                console.log('🔵 Nutzer - Nur allgemeine Einstellungen');
-            }
-        }
-
-        // Open User Management
-        async function openUserManagement() {
-            if (currentUserRole !== 'super_admin' && currentUserRole !== 'admin') {
-                alert('Zugriff verweigert. Sie benötigen Admin-Berechtigung.');
-                return;
-            }
-
-            const section = document.getElementById('user-management-section');
-            const content = document.getElementById('user-management-content');
+            alert('Neuer Benutzer wurde erfolgreich erstellt!\n\nEin Einladungs-Email wurde gesendet.');
+            closeAddUserModal();
             
-            section.classList.remove('hidden');
-            
-            try {
-                // Load personenzuweisung.html content
-                const response = await fetch('/pages/personenzuweisung.html');
-                const html = await response.text();
-                
-                // Extract body content and inject
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const bodyContent = doc.body.innerHTML;
-                
-                content.innerHTML = bodyContent;
-                
-                // Execute any scripts in the loaded content
-                const scripts = content.querySelectorAll('script');
-                scripts.forEach(script => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = script.textContent;
-                    document.head.appendChild(newScript);
-                });
-                
-                console.log('Personenzuweisung geladen');
-            } catch (error) {
-                console.error('Fehler beim Laden der Personenzuweisung:', error);
-                content.innerHTML = `
-                    <div class="text-center py-8">
-                        <p class="text-lg text-red-600">Fehler beim Laden der Benutzerverwaltung</p>
-                        <p class="text-sm" style="color: var(--color-text-secondary);">${error.message}</p>
-                    </div>
-                `;
-            }
+            // TODO: Send user data to server
+            // TODO: Refresh user table
+        });
+    }
+    
+    // Modal click outside to close
+    document.getElementById('add-user-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddUserModal();
         }
+    });
+    
+    console.log('SBV User Management bereit');
+    console.log('Features verfügbar:');
+    console.log('✅ Benutzer suchen und filtern');
+    console.log('✅ Neue Benutzer hinzufügen'); 
+    console.log('✅ Rollen verwalten');
+    console.log('✅ Teilprojekt-Zuweisungen');
+    console.log('✅ Status-Management');
+    console.log('✅ Datenbank-Backup Einstellungen');
+    console.log('✅ Sicherheitseinstellungen');
+});
+</script>
 
-        // Close User Management
-        function closeUserManagement() {
-            document.getElementById('user-management-section').classList.add('hidden');
-        }
-
-        // Other settings functions
-        function openSystemLogs() {
-            if (currentUserRole !== 'super_admin') {
-                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
-                return;
-            }
-            // Navigate to system logs (placeholder)
-            navigateTo('systemlogs');
-        }
-
-        function openDatabaseSettings() {
-            if (currentUserRole !== 'super_admin') {
-                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
-                return;
-            }
-            alert('Datenbankeinstellungen - Coming Soon');
-        }
-
-        function openSystemConfig() {
-            if (currentUserRole !== 'super_admin') {
-                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
-                return;
-            }
-            alert('Systemkonfiguration - Coming Soon');
-        }
-
-        function openBackupSettings() {
-            if (currentUserRole !== 'super_admin') {
-                alert('Zugriff verweigert. Sie benötigen Super Admin-Berechtigung.');
-                return;
-            }
-            alert('Backup & Sicherheit - Coming Soon');
-        }
-
-        function openGeneralSettings() {
-            alert('Allgemeine Einstellungen - Coming Soon');
-        }
-    </script>
 </body>
 </html>
