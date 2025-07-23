@@ -90,46 +90,33 @@ const rapportRoutes = `
 // GET: Alle Rapporte abrufen
 app.get('/api/rapporte', requireAuth, async (req, res) => {
     try {
+        console.log('📊 API: Lade alle Rapporte...');
         const { jahr, periode, teilprojekt, status } = req.query;
-        let query = \`
+        
+        // Einfache Query ohne komplexe Parameter zuerst
+        let query = `
             SELECT r.*, 
-                   COUNT(DISTINCT rm.id) as anzahl_massnahmen,
-                   COUNT(DISTINCT rk.id) as anzahl_kpis,
-                   AVG(CASE WHEN rk.zielwert > 0 THEN rk.istwert / rk.zielwert * 100 ELSE 0 END) as durchschnitt_kpi_erreichung,
                    u.name as ersteller_name
             FROM rapporte r
-            LEFT JOIN rapport_massnahmen rm ON r.id = rm.rapport_id
-            LEFT JOIN rapport_kpis rk ON r.id = rk.rapport_id
             LEFT JOIN sbv_benutzer u ON r.erstellt_von = u.id
-            WHERE 1=1
-        \`;
-        const params = [];
-        let paramIndex = 1;
+            ORDER BY r.jahr DESC, r.periode DESC
+        `;
 
-        if (jahr) {
-            query += \` AND r.jahr = $\${paramIndex++}\`;
-            params.push(jahr);
-        }
-        if (periode) {
-            query += \` AND r.periode = $\${paramIndex++}\`;
-            params.push(periode);
-        }
-        if (teilprojekt) {
-            query += \` AND r.teilprojekt = $\${paramIndex++}\`;
-            params.push(teilprojekt);
-        }
-        if (status) {
-            query += \` AND r.status = $\${paramIndex++}\`;
-            params.push(status);
-        }
-
-        query += ' GROUP BY r.id, u.name ORDER BY r.jahr DESC, r.periode DESC';
-
-        const result = await pool.query(query, params);
-        res.json(result.rows);
+        const result = await pool.query(query);
+        console.log('✅ Rapporte gefunden:', result.rows.length);
+        
+        res.json({
+            success: true,
+            data: result.rows,
+            count: result.rows.length
+        });
     } catch (error) {
-        logger.error('Error fetching rapporte:', error);
-        res.status(500).json({ error: error.message });
+        console.error('❌ Fehler beim Laden der Rapporte:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Fehler beim Laden der Rapporte',
+            details: error.message 
+        });
     }
 });
 
@@ -194,14 +181,27 @@ app.post('/api/rapporte', requireAuth, async (req, res) => {
             : 1;
         const rapportNummer = \`R-\${jahr}-\${String(nextNumber).padStart(3, '0')}\`;
 
-        // Budget aus Template laden falls nicht provided
+        // Budget aus echten Teilprojekten laden (Vorjahres-Gesuch als Basis fuer aktuellen Report)
         let budgetBrutto = rapportData.budget_brutto || rapportData.budgetBrutto;
         if (!budgetBrutto) {
-            const templateResult = await client.query(
-                'SELECT budget_standard FROM teilprojekt_templates WHERE teilprojekt = $1',
-                [teilprojekt]
+            // Erstprioritaet: Suche nach echtem Teilprojekt-Budget aus Vorjahr
+            const teilprojektResult = await client.query(
+                'SELECT budget_soll, budget FROM sbv_teilprojekte WHERE name ILIKE $1 AND jahr = $2 ORDER BY id DESC LIMIT 1',
+                [`%${teilprojekt}%`, jahr - 1] 
             );
-            budgetBrutto = templateResult.rows[0]?.budget_standard || 0;
+            
+            if (teilprojektResult.rows.length > 0) {
+                budgetBrutto = teilprojektResult.rows[0].budget_soll || teilprojektResult.rows[0].budget || 0;
+                console.log('Budget aus Vorjahres-Teilprojekt geladen: CHF', budgetBrutto.toLocaleString(), 'fuer', teilprojekt);
+            } else {
+                // Fallback: Template nur wenn keine echten Daten vorhanden
+                const templateResult = await client.query(
+                    'SELECT budget_standard FROM teilprojekt_templates WHERE teilprojekt = $1',
+                    [teilprojekt]
+                );
+                budgetBrutto = templateResult.rows[0]?.budget_standard || 0;
+                console.log('Fallback auf Template-Budget: CHF', budgetBrutto.toLocaleString(), 'fuer', teilprojekt);
+            }
         }
 
         // Rapport erstellen
@@ -414,10 +414,9 @@ app.get('/api/templates/:teilprojekt', requireAuth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-`;
 
 // INITIALIZATION FUNCTION - Zu integrieren in server.js startup
-const initRapportTables = \`
+const initRapportTables = `
 async function initRapportTables() {
     try {
         logger.info('🔄 Initializing Rapport Management tables...');
@@ -425,14 +424,14 @@ async function initRapportTables() {
         await pool.query(rapportSchema);
         
         // Insert template data
-        await pool.query(\`
+        await pool.query(`
             INSERT INTO teilprojekt_templates (teilprojekt, budget_standard) VALUES 
             ('leitmedien', 45000),
             ('digitale-medien', 35000),
             ('social-media', 25000),
             ('messen', 20000)
             ON CONFLICT (teilprojekt) DO NOTHING
-        \`);
+        `);
         
         await pool.query(\`
             INSERT INTO template_massnahmen (teilprojekt, massnahme_name, budget_standard, sortierung) VALUES 

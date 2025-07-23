@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/backend/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "src/backend/server.js"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "src/backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "src/frontend/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "src/backend/server.js": {
+      "maxDuration": 60
+    }
+  }
+}
