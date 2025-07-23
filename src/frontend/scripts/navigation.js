@@ -14,6 +14,7 @@ if (document.readyState === 'loading') {
 // Main navigation initializer
 function initializeNavigation() {
     console.log('🚀 Initializing SBV Navigation System...');
+    console.log('🔐 PHASE 2: Rollenbasierte Navigation wird initialisiert...');
     
     // Store original dashboard content on first load
     const pageContent = document.getElementById('page-content');
@@ -21,9 +22,20 @@ function initializeNavigation() {
         originalDashboardContent = pageContent.innerHTML;
     }
     
+    // PHASE 2: Implementiere rollenbasierte Navigation
+    initializeRoleBasedNavigation();
+    
     // Navigate to page function (global for onclick handlers)
     window.navigateTo = function(page) {
         console.log(`📱 Navigating to: ${page}`);
+        
+        // PHASE 2: Rechtsprüfung vor Navigation
+        const userRole = getUserRole();
+        if (!hasAccessToPage(page, userRole)) {
+            console.log(`🚫 Zugriff verweigert: ${userRole} → ${page}`);
+            showAccessDeniedMessage(page);
+            return;
+        }
         
         // Update active navigation
         const navLinks = document.querySelectorAll('.nav-link');
@@ -48,38 +60,111 @@ function initializeNavigation() {
     // Setup navigation links
     const navLinks = document.querySelectorAll('.nav-link');
     console.log(`📋 Found ${navLinks.length} navigation links`);
+    console.log('🔐 PHASE 3: Navigationslinks werden rollenbasiert konfiguriert...');
     
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('🖱️ Navigation link clicked:', this);
-            
-            // Update active states
-            navLinks.forEach(l => {
-                l.classList.remove('nav-link-active');
-                l.classList.add('nav-link-inactive');
+        // PHASE 3: Prüfe Berechtigung für jeden Link
+        const page = link.getAttribute('data-page') || link.getAttribute('href')?.substring(1) || 'dashboard';
+        const userRole = getUserRole();
+        
+        if (!hasAccessToPage(page, userRole)) {
+            // Verstecke nicht erlaubte Links
+            link.style.display = 'none';
+            console.log(`🚫 Navigation versteckt: ${page} für Rolle ${userRole}`);
+        } else {
+            // Link ist erlaubt - Event Listener hinzufügen
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🖱️ Navigation link clicked:', this);
+                
+                // Update active states
+                navLinks.forEach(l => {
+                    l.classList.remove('nav-link-active');
+                    l.classList.add('nav-link-inactive');
+                });
+                
+                this.classList.remove('nav-link-inactive');
+                this.classList.add('nav-link-active');
+                
+                // Get target page
+                const targetPage = this.getAttribute('data-page') || this.getAttribute('href')?.substring(1) || 'dashboard';
+                console.log(`Loading page: ${targetPage}`);
+                
+                // Load page content with permission check
+                if (hasAccessToPage(targetPage, getUserRole())) {
+                    loadPageContent(targetPage);
+                    window.history.pushState({page: targetPage}, '', `#${targetPage}`);
+                } else {
+                    showAccessDeniedMessage(targetPage);
+                }
             });
-            
-            this.classList.remove('nav-link-inactive');
-            this.classList.add('nav-link-active');
-            
-            // Get target page
-            const page = this.getAttribute('data-page') || this.getAttribute('href')?.substring(1) || 'dashboard';
-            console.log(`Loading page: ${page}`);
-            
-            // Load page content
-            loadPageContent(page);
-            
-            // Update URL
-            window.history.pushState({page: page}, '', `#${page}`);
-        });
+            console.log(`✅ Navigation aktiviert: ${page} für Rolle ${userRole}`);
+        }
     });
     
     // Load initial page from URL hash or default to dashboard
     const initialPage = window.location.hash.substring(1) || 'dashboard';
     console.log(`Loading initial page: ${initialPage}`);
-    loadPageContent(initialPage);
-    updateActiveNav(initialPage);
+    console.log('🔐 PHASE 5: Initiale Seite wird mit Rechtsprüfung geladen...');
+    
+    // PHASE 5: Rechtsprüfung für initiale Seite
+    const userRole = getUserRole();
+    if (hasAccessToPage(initialPage, userRole)) {
+        loadPageContent(initialPage);
+        updateActiveNav(initialPage);
+        console.log(`✅ PHASE 5: Initiale Seite ${initialPage} erfolgreich geladen`);
+    } else {
+        console.log(`🚫 PHASE 5: Zugriff auf initiale Seite ${initialPage} verweigert - lade Dashboard`);
+        loadPageContent('dashboard');
+        updateActiveNav('dashboard');
+        window.history.replaceState({page: 'dashboard'}, '', '#dashboard');
+    }
+}
+
+// =============================================================================
+// PHASE 5: ROLLENBASIERTE NAVIGATION HILFSFUNKTIONEN
+// =============================================================================
+
+// Initialisiere rollenbasierte Navigation
+function initializeRoleBasedNavigation() {
+    const userRole = getUserRole();
+    const permissions = getPagePermissions();
+    const allowedPages = permissions[userRole] || permissions['user'];
+    
+    console.log('🔐 PHASE 5: Rollenbasierte Navigation wird initialisiert...');
+    console.log(`👤 Benutzerrolle: ${userRole}`);
+    console.log(`📄 Erlaubte Seiten: ${allowedPages.join(', ')}`);
+    
+    // Füge CSS-Klasse basierend auf Benutzerrolle hinzu
+    document.body.classList.add(`user-role-${userRole}`);
+    
+    return allowedPages;
+}
+
+// Zeige Zugriff-verweigert Nachricht
+function showAccessDeniedMessage(page) {
+    const pageContent = document.getElementById('page-content');
+    if (pageContent) {
+        pageContent.innerHTML = `
+            <div class="flex items-center justify-center min-h-[400px]">
+                <div class="text-center max-w-md mx-auto p-8">
+                    <div class="mb-6">
+                        <svg class="w-24 h-24 mx-auto text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0 0v2m0-2h2m-2 0H8m13-9.269A9 9 0 1111.269 3 9 9 0 0121 11.731z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Zugriff verweigert</h2>
+                    <p class="text-gray-600 mb-6">Sie haben keine Berechtigung, auf die Seite "${getPageTitle(page)}" zuzugreifen.</p>
+                    <button onclick="window.navigateTo('dashboard')" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Zurück zum Dashboard
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    console.log(`🚫 PHASE 5: Zugriff-verweigert Nachricht angezeigt für Seite: ${page}`);
 }
 
 // Content loader function
@@ -91,6 +176,15 @@ function loadPageContent(page) {
     }
     
     console.log(`📄 Loading page: ${page}`);
+    console.log('🔐 PHASE 4: Sicherheitsprüfung beim Content-Laden...');
+    
+    // PHASE 4: Doppelte Sicherheitsprüfung
+    const userRole = getUserRole();
+    if (!hasAccessToPage(page, userRole)) {
+        console.log(`🚫 PHASE 4: Zugriff verweigert beim Content-Laden: ${userRole} → ${page}`);
+        showAccessDeniedMessage(page);
+        return;
+    }
     
     // For dashboard, restore original content
     if (page === 'dashboard') {
@@ -107,7 +201,7 @@ function loadPageContent(page) {
     // Initialize page-specific functionality
     initializePageFeatures(page);
     
-    console.log(`✅ Page ${page} loaded successfully`);
+    console.log(`✅ PHASE 4: Page ${page} loaded successfully for role ${userRole}`);
 }
 
 // Update active navigation
@@ -621,7 +715,7 @@ function getArchivContent() {
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gesuch-Nr.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumentnummer</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titel</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Antragsteller</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
@@ -630,34 +724,16 @@ function getArchivContent() {
                             </tr>
                         </thead>
                         <tbody id="archivTable" class="bg-white divide-y divide-gray-200">
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2025-001</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Erneuerung Melkstand Hof Müller</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Hans Müller</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">15.01.2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Genehmigt
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
-                                    <button class="text-gray-600 hover:text-gray-900">Download</button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#2025-002</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Solarpanels Scheune</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Anna Schmidt</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">18.01.2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                        In Bearbeitung
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
-                                    <button class="text-gray-600 hover:text-gray-900">Download</button>
+                            <!-- Daten werden dynamisch geladen -->
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    <div class="flex items-center justify-center">
+                                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Lade Archiv-Daten...
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -684,9 +760,19 @@ function getArchivContent() {
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jahr</label>
                             <select id="jahr" name="jahr" required
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-green)]">
-                                <option value="2025">2025</option>
+                                <option value="2030">2030</option>
+                                <option value="2029">2029</option>
+                                <option value="2028">2028</option>
+                                <option value="2027">2027</option>
+                                <option value="2026">2026</option>
+                                <option value="2025" selected>2025</option>
                                 <option value="2024">2024</option>
                                 <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
                             </select>
                         </div>
                         
@@ -811,23 +897,42 @@ function updateArchivTable(gesuche) {
     const tableBody = document.getElementById('archivTable');
     if (!tableBody || !gesuche) return;
     
-    tableBody.innerHTML = gesuche.map(gesuch => `
-        <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${gesuch.jahr}-${gesuch.id.toString().padStart(3, '0')}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gesuch.titel}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${gesuch.antragsteller || 'Unbekannt'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${new Date(gesuch.eingereicht_am).toLocaleDateString('de-CH')}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(gesuch.status)}">
-                    ${getStatusText(gesuch.status)}
-                </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button onclick="viewGesuch(${gesuch.id})" class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
-                ${gesuch.uploaded_file ? `<button onclick="downloadGesuch(${gesuch.id})" class="text-gray-600 hover:text-gray-900">Download</button>` : ''}
-            </td>
-        </tr>
-    `).join('');
+    if (gesuche.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                    Keine Gesuche gefunden
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = gesuche.map((gesuch, index) => {
+        // Generate Gesuch-Nr: Verwende echte ID oder Index
+        const gesuchNr = gesuch.id ? `#${gesuch.jahr}-${gesuch.id.toString().padStart(3, '0')}` : `#${gesuch.jahr}-${(index + 1).toString().padStart(3, '0')}`;
+        
+        // Format date
+        const datum = gesuch.eingereicht_am ? new Date(gesuch.eingereicht_am).toLocaleDateString('de-CH') : 'Unbekannt';
+        
+        return `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${gesuchNr}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gesuch.titel || 'Ohne Titel'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${gesuch.antragsteller || 'Unbekannt'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${datum}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(gesuch.status)}">
+                        ${getStatusText(gesuch.status)}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="viewGesuch('${gesuch.id || index}')" class="text-blue-600 hover:text-blue-900 mr-3">Ansehen</button>
+                    ${gesuch.uploaded_file ? `<button onclick="downloadGesuch('${gesuch.id || index}')" class="text-gray-600 hover:text-gray-900">Download</button>` : '<span class="text-gray-400">Kein File</span>'}
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // Update archive statistics
@@ -835,12 +940,30 @@ function updateArchivStats(gesuche) {
     if (!gesuche) return;
     
     const currentYear = new Date().getFullYear();
-    const thisYearGesuche = gesuche.filter(g => g.jahr === currentYear);
+    const thisYearGesuche = gesuche.filter(g => parseInt(g.jahr) === currentYear);
     const approvedGesuche = gesuche.filter(g => g.status === 'genehmigt');
     
-    document.getElementById('stats-total').textContent = gesuche.length.toLocaleString();
-    document.getElementById('stats-year').textContent = thisYearGesuche.length.toLocaleString();
-    document.getElementById('stats-approved').textContent = `${Math.round((approvedGesuche.length / gesuche.length) * 100)}%`;
+    // Update stats display
+    const totalElement = document.getElementById('stats-total');
+    const yearElement = document.getElementById('stats-year');
+    const approvedElement = document.getElementById('stats-approved');
+    const storageElement = document.getElementById('stats-storage');
+    
+    if (totalElement) totalElement.textContent = gesuche.length.toLocaleString();
+    if (yearElement) yearElement.textContent = thisYearGesuche.length.toLocaleString();
+    if (approvedElement) {
+        const approvalRate = gesuche.length > 0 ? Math.round((approvedGesuche.length / gesuche.length) * 100) : 0;
+        approvedElement.textContent = `${approvalRate}%`;
+    }
+    
+    // Calculate storage from file sizes
+    if (storageElement) {
+        const totalBytes = gesuche.reduce((sum, gesuch) => {
+            return sum + (parseInt(gesuch.file_size) || 0);
+        }, 0);
+        const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+        storageElement.textContent = `${totalMB} MB`;
+    }
 }
 
 // Helper functions
@@ -849,6 +972,9 @@ function getStatusClass(status) {
         case 'genehmigt': return 'bg-green-100 text-green-800';
         case 'abgelehnt': return 'bg-red-100 text-red-800';
         case 'eingereicht': return 'bg-yellow-100 text-yellow-800';
+        case 'entwurf': return 'bg-gray-100 text-gray-800';
+        case 'bearbeitung': return 'bg-blue-100 text-blue-800';
+        case 'prüfung': return 'bg-purple-100 text-purple-800';
         default: return 'bg-gray-100 text-gray-800';
     }
 }
@@ -858,7 +984,10 @@ function getStatusText(status) {
         case 'genehmigt': return 'Genehmigt';
         case 'abgelehnt': return 'Abgelehnt';
         case 'eingereicht': return 'In Bearbeitung';
-        default: return 'Unbekannt';
+        case 'entwurf': return 'Entwurf';
+        case 'bearbeitung': return 'In Bearbeitung';
+        case 'prüfung': return 'In Prüfung';
+        default: return status || 'Unbekannt';
     }
 }
 
@@ -871,6 +1000,69 @@ function downloadGesuch(id) {
     // TODO: Implement file download
     const token = sessionStorage.getItem('sbv_token');
     window.open(`/api/gesuche/${id}/download?token=${token}`, '_blank');
+}
+
+// =============================================================================
+// ROLE-BASED ACCESS CONTROL SYSTEM - PHASE 1: GRUNDFUNKTIONEN
+// =============================================================================
+
+// Benutzerrolle aus Session Storage ermitteln
+function getUserRole() {
+    const storedUser = sessionStorage.getItem('sbv_benutzer');
+    if (storedUser) {
+        try {
+            const userInfo = JSON.parse(storedUser);
+            const role = userInfo.rolle || userInfo.role || 'user';
+            console.log('🔐 Benutzerrolle erkannt:', role);
+            return role;
+        } catch (e) {
+            console.error('❌ Fehler beim Parsen der Benutzerinformationen:', e);
+            return 'user';
+        }
+    }
+    console.log('⚠️ Keine Benutzerinformationen gefunden - verwende Standard-Rolle');
+    return 'user';
+}
+
+// Definiere Seiten-Berechtigungen pro Rolle
+function getPagePermissions() {
+    return {
+        'user': [
+            'dashboard',
+            'rapport', 
+            'einstellungen'
+        ],
+        'admin': [
+            'dashboard',
+            'gesuche',
+            'rapport',
+            'archiv',
+            'berichte',
+            'dokumente',
+            'einstellungen'
+        ],
+        'super_admin': [
+            'dashboard',
+            'gesuche',
+            'rapport',
+            'archiv',
+            'berichte',
+            'dokumente',
+            'benutzerverwaltung',
+            'systemlogs',
+            'einstellungen'
+        ]
+    };
+}
+
+// Prüfe ob Benutzer Zugriff auf Seite hat
+function hasAccessToPage(page, userRole) {
+    const permissions = getPagePermissions();
+    const allowedPages = permissions[userRole] || permissions['user'];
+    const hasAccess = allowedPages.includes(page);
+    
+    console.log(`🔍 Zugriffsprüfung: ${userRole} → ${page} = ${hasAccess ? '✅ ERLAUBT' : '❌ VERWEIGERT'}`);
+    return hasAccess;
 }
 
 // Export functions to global scope for dashboard.html

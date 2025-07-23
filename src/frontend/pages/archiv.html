@@ -139,14 +139,15 @@
         <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                 <h3 class="text-xl font-bold mb-4" style="color: var(--color-text-primary);">Gesuch hochladen</h3>
-                <form id="uploadForm" enctype="multipart/form-data">
+                <form id="uploadForm" enctype="multipart/form-data" onsubmit="handleGesuchUpload(event)">
                     <div class="mb-4">
                         <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Gesuch-Datei (PDF)</label>
-                        <input type="file" id="gesuchFile" accept=".pdf" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
+                        <input type="file" id="gesuchFile" name="pdfFile" accept=".pdf" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
+                        <p class="text-xs text-gray-500 mt-1">Nur PDF-Dateien bis 10MB</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Jahr</label>
-                        <select id="uploadYear" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
+                        <select id="uploadYear" name="jahr" required class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);">
                             <option value="2030">2030</option>
                             <option value="2029">2029</option>
                             <option value="2028">2028</option>
@@ -158,11 +159,13 @@
                             <option value="2022">2022</option>
                             <option value="2021">2021</option>
                             <option value="2020">2020</option>
+                            <option value="2019">2019</option>
+                            <option value="2018">2018</option>
                         </select>
                     </div>
                     <div class="mb-6">
                         <label class="block text-sm font-semibold mb-2" style="color: var(--color-text-primary);">Beschreibung</label>
-                        <textarea id="uploadDescription" rows="3" class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);" placeholder="Kurze Beschreibung des Gesuchs..."></textarea>
+                        <textarea id="uploadDescription" name="beschreibung" rows="3" class="w-full border rounded-lg px-3 py-2" style="border-color: var(--color-border);" placeholder="Kurze Beschreibung des Gesuchs..."></textarea>
                     </div>
                     <div class="flex justify-end gap-3">
                         <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border rounded-lg" style="border-color: var(--color-border); color: var(--color-text-secondary);">
@@ -467,6 +470,84 @@
             // Füge Preview nach dem Datei-Input hinzu
             const fileInputDiv = document.getElementById('gesuchFile').parentNode;
             fileInputDiv.appendChild(preview);
+        }
+
+        // ===== GESUCH UPLOAD HANDLER =====
+        
+        async function handleGesuchUpload(event) {
+            event.preventDefault();
+            console.log('📤 Upload gestartet...');
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const fileInput = document.getElementById('gesuchFile');
+            const file = fileInput.files[0];
+            
+            // Validierung
+            if (!file) {
+                alert('❌ Bitte wählen Sie eine PDF-Datei aus.');
+                return;
+            }
+            
+            if (file.type !== 'application/pdf') {
+                alert('❌ Nur PDF-Dateien sind erlaubt.');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('❌ Datei ist zu groß. Maximale Größe: 10MB');
+                return;
+            }
+            
+            // Submit Button deaktivieren
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Wird hochgeladen...';
+            
+            try {
+                const token = sessionStorage.getItem('sbv_token');
+                if (!token) {
+                    throw new Error('Nicht angemeldet. Bitte loggen Sie sich erneut ein.');
+                }
+                
+                console.log('📋 Upload-Daten:', {
+                    fileName: file.name,
+                    size: file.size,
+                    jahr: formData.get('jahr'),
+                    beschreibung: formData.get('beschreibung')
+                });
+                
+                const response = await fetch('/api/gesuche/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    alert('✅ Upload erfolgreich!\n\n' + 
+                          'Gesuch: ' + result.gesuch.titel + '\n' +
+                          'Rapport: ' + result.rapport.titel + '\n\n' +
+                          'Die Seite wird automatisch aktualisiert.');
+                    
+                    closeUploadModal();
+                    loadAvailableYears(); // Refresh data
+                } else {
+                    throw new Error(result.message || 'Upload fehlgeschlagen');
+                }
+                
+            } catch (error) {
+                console.error('❌ Upload-Fehler:', error);
+                alert('❌ Fehler beim Hochladen: ' + error.message);
+            } finally {
+                // Submit Button wieder aktivieren
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
         }
 
         // Jahr-Fix Tool Integration (für Button-Aufruf)

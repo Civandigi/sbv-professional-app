@@ -109,13 +109,12 @@
                         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Offene Gesuche</p>
-                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">24</p>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Offene Rapporte</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]" id="offene-rapporte">-</p>
                                 </div>
                                 <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3h6v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm8 8a1 1 0 100-2 1 1 0 000 2zm-3-1a1 1 0 11-2 0 1 1 0 012 0zm-1-4a1 1 0 100-2 1 1 0 000 2zm4-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path>
+                                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2 2H5V5h14v14H19zm0-16H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
                                     </svg>
                                 </div>
                             </div>
@@ -124,12 +123,12 @@
                         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Bearbeitete Gesuche</p>
-                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">156</p>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Archivierte Dokumente</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]" id="archivierte-dokumente">-</p>
                                 </div>
                                 <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-[var(--color-green)]" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M3,3H21V7H3V3M4,8H20V21H4V8M9.5,11A0.5,0.5 0 0,0 9,11.5V13H15V11.5A0.5,0.5 0 0,0 14.5,11H9.5Z"/>
                                     </svg>
                                 </div>
                             </div>
@@ -138,12 +137,12 @@
                         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Aktive Benutzer</p>
-                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">12</p>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Hochgeladene PDFs</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]" id="hochgeladene-pdfs">-</p>
                                 </div>
-                                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
                                 </div>
                             </div>
@@ -152,8 +151,8 @@
                         <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Rapport</p>
-                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]">8</p>
+                                    <p class="text-sm font-medium text-[var(--color-text-secondary)]">Berichte</p>
+                                    <p class="text-3xl font-bold text-[var(--color-text-primary)]" id="berichte-anzahl">-</p>
                                 </div>
                                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                                     <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -179,29 +178,17 @@
                                             <th class="py-3 px-4 text-sm font-semibold text-[var(--color-text-secondary)] text-center">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr class="border-b border-[var(--color-border)]">
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">21.07.2025</td>
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Gesuch</td>
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Neues Gesuch von Alex Meier eingereicht</td>
-                                            <td class="py-4 px-4 text-center">
-                                                <span class="inline-block px-3 py-1 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-full">Wartend</span>
-                                            </td>
-                                        </tr>
-                                        <tr class="border-b border-[var(--color-border)]">
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">20.07.2025</td>
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Rapport</td>
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Monatsbericht Juni genehmigt</td>
-                                            <td class="py-4 px-4 text-center">
-                                                <span class="inline-block px-3 py-1 text-sm font-medium text-[var(--color-green)] bg-green-100 rounded-full">Genehmigt</span>
-                                            </td>
-                                        </tr>
-                                        <tr class="border-b border-[var(--color-border)]">
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">19.07.2025</td>
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Gesuch</td>
-                                            <td class="py-4 px-4 text-[var(--color-text-primary)]">Antrag für zusätzliche Ressourcen</td>
-                                            <td class="py-4 px-4 text-center">
-                                                <span class="inline-block px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">In Prüfung</span>
+                                    <tbody id="recent-activities">
+                                        <!-- Aktivitäten werden dynamisch geladen -->
+                                        <tr>
+                                            <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                                                <div class="flex items-center justify-center">
+                                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Lade aktuelle Aktivitäten...
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -245,8 +232,8 @@
                             <div class="bg-[var(--color-card-background)] rounded-2xl shadow-sm p-6">
                                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Schnellaktionen</h2>
                                 <div class="flex flex-col gap-3">
-                                    <button class="button_primary">Neues Gesuch erstellen</button>
-                                    <button class="button_secondary">Rapport generieren</button>
+                                    <button class="button_secondary" onclick="window.location.href='rapport.html'">Neuen Rapport erstellen</button>
+                                    <button class="button_secondary" onclick="window.location.href='upload.html'">PDF Upload</button>
                                 </div>
                             </div>
                         </aside>
@@ -465,7 +452,163 @@
             console.log('🧪 Testing navigation system...');
             console.log('Available pages: dashboard, gesuche, rapport, dokumente, einstellungen');
             console.log('Use navigateTo("pagename") to test navigation');
+            
+            // Load dashboard data
+            loadDashboardData();
         }, 1000);
+        
+        // Dashboard Data Loading Functions
+        async function loadDashboardData() {
+            console.log('📊 Loading dashboard data...');
+            
+            try {
+                await Promise.all([
+                    loadDashboardStats(),
+                    loadRecentActivities()
+                ]);
+                console.log('✅ Dashboard data loaded successfully');
+            } catch (error) {
+                console.error('❌ Error loading dashboard data:', error);
+                showDashboardError();
+            }
+        }
+        
+        async function loadDashboardStats() {
+            const token = sessionStorage.getItem('sbv_token');
+            if (!token) return;
+            
+            try {
+                // Load Gesuche
+                const gesucheResponse = await fetch('/api/gesuche', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const gesucheResult = await gesucheResponse.json();
+                const gesuche = gesucheResult.data || [];
+                
+                // Load Berichte
+                const berichteResponse = await fetch('/api/berichte', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const berichteResult = await berichteResponse.json();
+                const berichte = berichteResult.data || [];
+                
+                // Calculate statistics
+                const offeneGesuche = gesuche.filter(g => g.status === 'eingereicht').length;
+                const genehmigteGesuche = gesuche.filter(g => g.status === 'genehmigt').length;
+                const hochgeladenePdfs = gesuche.filter(g => g.uploaded_file).length;
+                const berichteAnzahl = berichte.length;
+                
+                // Update dashboard cards
+                updateStatCard('offene-gesuche', offeneGesuche);
+                updateStatCard('genehmigte-gesuche', genehmigteGesuche);
+                updateStatCard('hochgeladene-pdfs', hochgeladenePdfs);
+                updateStatCard('berichte-anzahl', berichteAnzahl);
+                
+                console.log('📈 Dashboard Stats:', {
+                    offeneGesuche,
+                    genehmigteGesuche,
+                    hochgeladenePdfs,
+                    berichteAnzahl
+                });
+                
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+        
+        async function loadRecentActivities() {
+            const token = sessionStorage.getItem('sbv_token');
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/api/gesuche', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                const gesuche = result.data || [];
+                
+                // Sort by eingereicht_am (newest first) and take top 5
+                const recentGesuche = gesuche
+                    .filter(g => g.eingereicht_am)
+                    .sort((a, b) => new Date(b.eingereicht_am) - new Date(a.eingereicht_am))
+                    .slice(0, 5);
+                
+                updateActivitiesTable(recentGesuche);
+                
+            } catch (error) {
+                console.error('Error loading recent activities:', error);
+            }
+        }
+        
+        function updateStatCard(elementId, value) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = value;
+                element.style.opacity = '0';
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                }, 100);
+            }
+        }
+        
+        function updateActivitiesTable(gesuche) {
+            const tbody = document.getElementById('recent-activities');
+            if (!tbody) return;
+            
+            if (gesuche.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                            Keine aktuellen Aktivitäten gefunden
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = gesuche.map(gesuch => {
+                const datum = new Date(gesuch.eingereicht_am).toLocaleDateString('de-CH');
+                const typ = gesuch.uploaded_file ? 'PDF Upload' : 'Gesuch';
+                const beschreibung = gesuch.titel || 'Ohne Titel';
+                const statusInfo = getStatusInfo(gesuch.status);
+                
+                return `
+                    <tr class="border-b border-[var(--color-border)]">
+                        <td class="py-4 px-4 text-[var(--color-text-primary)]">${datum}</td>
+                        <td class="py-4 px-4 text-[var(--color-text-primary)]">${typ}</td>
+                        <td class="py-4 px-4 text-[var(--color-text-primary)]">${beschreibung}</td>
+                        <td class="py-4 px-4 text-center">
+                            <span class="inline-block px-3 py-1 text-sm font-medium ${statusInfo.class} rounded-full">
+                                ${statusInfo.text}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function getStatusInfo(status) {
+            switch(status) {
+                case 'eingereicht':
+                    return { class: 'text-yellow-800 bg-yellow-100', text: 'Eingereicht' };
+                case 'genehmigt':
+                    return { class: 'text-green-800 bg-green-100', text: 'Genehmigt' };
+                case 'abgelehnt':
+                    return { class: 'text-red-800 bg-red-100', text: 'Abgelehnt' };
+                case 'entwurf':
+                    return { class: 'text-gray-800 bg-gray-100', text: 'Entwurf' };
+                default:
+                    return { class: 'text-blue-800 bg-blue-100', text: 'In Bearbeitung' };
+            }
+        }
+        
+        function showDashboardError() {
+            const statsCards = document.querySelectorAll('[id$="-gesuche"], [id$="-pdfs"], [id$="-anzahl"]');
+            statsCards.forEach(card => {
+                card.textContent = '⚠️';
+                card.title = 'Fehler beim Laden der Daten';
+            });
+        }
     </script>
 </body>
 </html>
